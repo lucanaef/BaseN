@@ -49,8 +49,7 @@ EVAL ``base16dec "DEADBEEF" = [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111
 Theorem BASE16_W8_INV_FUN:
   !(w8: word8). base16dec (base16enc ([w8])) = [w8]
 Proof
-  (*TODO: Can I somehow prove this exhaustively? Use the same strat for all 256
-  * values of w8? *)
+  (*TODO: Can I somehow prove this exhaustively? Use the same strat for all 256 values of w8. *)
   (* `blastLib.BBLAST_TAC` ?*)
   cheat 
 QED
@@ -84,38 +83,54 @@ End
   takes one bs: bool[k] where k % 5 = 0 and retruns a list of k/5 chars 
 *) 
 
+Definition alph_base32_ext_8_10_def:
+  alph_base32_ext_8_10 (x: bool[8]) = (x @@ (0b0w: bool[2])): bool[10]
+End
+
 Definition alph_base32_lookup_8_def: 
   alph_base32_lookup_8 (x: bool[8]) = 
-    STRING (alph_base32_el $ (9 >< 5) ((x @@ (0b0w: bool[2])): bool[10])) $
-    STRING (alph_base32_el $ (4 >< 0) ((x @@ (0b0w: bool[2])): bool[10])) ""
+    STRING (alph_base32_el $ (9 >< 5) (alph_base32_ext_8_10 x)) $
+    STRING (alph_base32_el $ (4 >< 0) (alph_base32_ext_8_10 x)) ""
+End
+
+Definition alph_base32_ext_16_20_def:
+  alph_base32_ext_16_20 (x: bool[16]) = (x @@ (0b0w: bool[4])): bool[20]
 End
 
 Definition alph_base32_lookup_16_def: 
   alph_base32_lookup_16 (x: bool[16]) =
-    STRING (alph_base32_el $ (19 >< 15) ((x @@ (0b0w: bool[4])): bool[20])) $
-    STRING (alph_base32_el $ (14 >< 10) ((x @@ (0b0w: bool[4])): bool[20])) $
-    STRING (alph_base32_el $ ( 9 ><  5) ((x @@ (0b0w: bool[4])): bool[20])) $
-    STRING (alph_base32_el $ ( 4 ><  0) ((x @@ (0b0w: bool[4])): bool[20])) ""
+    STRING (alph_base32_el $ (19 >< 15) (alph_base32_ext_16_20 x)) $
+    STRING (alph_base32_el $ (14 >< 10) (alph_base32_ext_16_20 x)) $
+    STRING (alph_base32_el $ ( 9 ><  5) (alph_base32_ext_16_20 x)) $
+    STRING (alph_base32_el $ ( 4 ><  0) (alph_base32_ext_16_20 x)) ""
+End
+
+Definition alph_base32_ext_24_25_def:
+  alph_base32_ext_24_25 (x: bool[24]) = (x @@ (0b0w: bool[1])): bool[25]
 End
 
 Definition alph_base32_lookup_24_def: 
   alph_base32_lookup_24 (x: bool[24]) =
-    STRING (alph_base32_el $ (24 >< 20) ((x @@ (0b0w: bool[1])): bool[25])) $
-    STRING (alph_base32_el $ (19 >< 15) ((x @@ (0b0w: bool[1])): bool[25])) $
-    STRING (alph_base32_el $ (14 >< 10) ((x @@ (0b0w: bool[1])): bool[25])) $
-    STRING (alph_base32_el $ ( 9 ><  5) ((x @@ (0b0w: bool[1])): bool[25])) $
-    STRING (alph_base32_el $ ( 4 ><  0) ((x @@ (0b0w: bool[1])): bool[25])) ""
+    STRING (alph_base32_el $ (24 >< 20) (alph_base32_ext_24_25 x)) $
+    STRING (alph_base32_el $ (19 >< 15) (alph_base32_ext_24_25 x)) $
+    STRING (alph_base32_el $ (14 >< 10) (alph_base32_ext_24_25 x)) $
+    STRING (alph_base32_el $ ( 9 ><  5) (alph_base32_ext_24_25 x)) $
+    STRING (alph_base32_el $ ( 4 ><  0) (alph_base32_ext_24_25 x)) ""
+End
+
+Definition alph_base32_ext_32_35_def:
+  alph_base32_ext_32_35 (x: bool[32]) = (x @@ (0b0w: bool[3])): bool[35]
 End
 
 Definition alph_base32_lookup_32_def: 
   alph_base32_lookup_32 (x: bool[32]) =
-    STRING (alph_base32_el $ (34 >< 30) ((x @@ (0b0w: bool[3])): bool[35])) $
-    STRING (alph_base32_el $ (29 >< 25) ((x @@ (0b0w: bool[3])): bool[35])) $
-    STRING (alph_base32_el $ (24 >< 20) ((x @@ (0b0w: bool[3])): bool[35])) $
-    STRING (alph_base32_el $ (19 >< 15) ((x @@ (0b0w: bool[3])): bool[35])) $
-    STRING (alph_base32_el $ (14 >< 10) ((x @@ (0b0w: bool[3])): bool[35])) $
-    STRING (alph_base32_el $ ( 9 ><  5) ((x @@ (0b0w: bool[3])): bool[35])) $
-    STRING (alph_base32_el $ ( 4 ><  0) ((x @@ (0b0w: bool[3])): bool[35])) ""
+    STRING (alph_base32_el $ (34 >< 30) (alph_base32_ext_32_35 x)) $
+    STRING (alph_base32_el $ (29 >< 25) (alph_base32_ext_32_35 x)) $
+    STRING (alph_base32_el $ (24 >< 20) (alph_base32_ext_32_35 x)) $
+    STRING (alph_base32_el $ (19 >< 15) (alph_base32_ext_32_35 x)) $
+    STRING (alph_base32_el $ (14 >< 10) (alph_base32_ext_32_35 x)) $
+    STRING (alph_base32_el $ ( 9 ><  5) (alph_base32_ext_32_35 x)) $
+    STRING (alph_base32_el $ ( 4 ><  0) (alph_base32_ext_32_35 x)) ""
 End
 
 Definition alph_base32_lookup_40_def: 
