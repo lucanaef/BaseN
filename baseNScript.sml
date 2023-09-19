@@ -172,4 +172,29 @@ EVAL ``base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w] = "MZXW6YQ
 EVAL ``base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w] = "MZXW6YTB"``
 EVAL ``base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w] = "MZXW6YTBOI======"``
 
+
+(* Base32 Decoding *)
+
+(* TODO: Why doesn't this work? Too many base cases? *)
+Definition base32dec_def:
+    (* Base cases *)
+    base32dec ([]: string) = ([]: word8 list)
+ /\ base32dec (c1::c2::"======") =
+      [(9 >< 2) (concat_word_list [alph_base32_index c2; alph_base32_index c1])]
+ /\ base32dec (c1::c2::c3::c4::"====") = []
+ /\ base32dec (c1::c2::c3::c4::c5::"===") = []
+ /\ base32dec (c1::c2::c3::c4::c5::c6::c7::"=") = []
+     (* Recursive case*)
+ /\ base32dec (c1::c2::c3::c4::c5::c7::c8::cs) = []
+End
+
+(* RFC 4648 Test Vectors *)
+EVAL ``base32dec "" = []``
+EVAL ``base32dec "MY======" = [0b01100110w]``
+EVAL ``base32dec "MZXQ====" = [0b01100110w; 0b01101111w]``
+EVAL ``base32dec "MZXW6===" = [0b01100110w; 0b01101111w; 0b01101111w]``
+EVAL ``base32dec "MZXW6YQ=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w]``
+EVAL ``base32dec "MZXW6YTB" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
+EVAL ``base32dec "MZXW6YTBOI======" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
+
 val _ = export_theory();
