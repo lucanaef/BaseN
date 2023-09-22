@@ -40,11 +40,25 @@ EVAL ``base16dec $ MAP (λc. THE $ INDEX_OF c ALPH_BASE16) "DEADBEEF" = [0b11011
 
 (* Theorems *)
 
+Theorem BASE16_DEC_ENC_W8S:
+  !(ws: word8 list). base16dec (base16enc ws) = ws
+Proof
+  Induct_on `ws` >- (
+    rw [base16enc_def, base16dec_def]
+  ) >> (
+    rw [base16enc_def, base16dec_def]
+    >> fs [wordsTheory.CONCAT_EXTRACT]
+    (* TODO: How to use this (^) theorem? *)
+  ) 
+QED
+
+
 Theorem BASE16_DEC_ENC_ID:
   base16dec o base16enc = I
 Proof
   cheat
 QED
+
 
 Theorem BASE16_ENC_DEC_ID:
   base16enc o base16dec = I
@@ -93,7 +107,7 @@ End
 Definition base32depad_def:
     (* Base cases *)
     base32depad ([]: string) = ([]: num list)
- /\ base32depad (c1::c2::"======") = TAKE_SCON
+ /\ base32depad (c1::c2::"======") = [] 
  /\ base32depad (c1::c2::c3::c4::"====") = []
  /\ base32depad (c1::c2::c3::c4::c5::"===") = []
  /\ base32depad (c1::c2::c3::c4::c5::c6::c7::"=") = []
