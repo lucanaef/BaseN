@@ -9,55 +9,47 @@ val _ = new_theory "baseN";
 
 (* Base16 Alphabet *)
 
-Definition alph_base16_el_def:
-  alph_base16_el (w: word4) = (EL (w2n w) "0123456789ABCDEF"): char
-End
-
-Definition alph_base16_index_def:
-  alph_base16_index (c: char) = (n2w $ THE $ INDEX_OF c "0123456789ABCDEF"): word4
+Definition ALPH_BASE16_DEF:
+  ALPH_BASE16 = "0123456789ABCDEF"
 End
 
 
 (* Base16 Encoding *)
 
-Definition base16enc_def:  
-    base16enc ([]: word8 list) = ""
- /\ base16enc (w::ws: word8 list) =
-     STRING (alph_base16_el ((7 >< 4) w)) $
-     STRING (alph_base16_el ((3 >< 0) w)) (base16enc ws)
+Definition base16enc_def:
+    base16enc ([]: word8 list) = ([]: num list)
+ /\ base16enc (w::ws: word8 list) = 
+      (w2n ((7 >< 4) w: word4))::(w2n ((3 >< 0) w: word4))::(base16enc ws)
 End
 
-(* TODO: How do I handle invalid input in such a definition? Raise HOL_ERR somehow? *)
-
-EVAL ``base16enc [] = ""``
-EVAL ``base16enc [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w] = "DEADBEEF"``
+EVAL ``MAP (λi. EL i ALPH_BASE16) $ base16enc [] = ""``
+EVAL ``MAP (λi. EL i ALPH_BASE16) $ base16enc [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w] = "DEADBEEF"``
 
 
 (* Base16 Decoding *)
 
 Definition base16dec_def:
-    base16dec ([]: string) = ([]: word8 list)
- /\ base16dec (c1::(c2::cs)) = 
-      (alph_base16_index c1 @@ alph_base16_index c2)::(base16dec cs)
+    base16dec ([]: num list) = ([]: word8 list)
+ /\ base16dec (c1::c2::cs) = 
+      ((n2w c1: word4) @@ (n2w c2: word4))::(base16dec cs)
 End
 
-EVAL ``base16dec "" = []``
-EVAL ``base16dec "DEADBEEF" = [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w]``
+EVAL ``base16dec $ MAP (λc. THE $ INDEX_OF c ALPH_BASE16) "" = []``
+EVAL ``base16dec $ MAP (λc. THE $ INDEX_OF c ALPH_BASE16) "DEADBEEF" = [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w]``
+
 
 (* Theorems *)
 
-Theorem BASE16_W8_INV_FUN:
-  !(w8: word8). base16dec (base16enc ([w8])) = [w8]
+Theorem BASE16_DEC_ENC_ID:
+  base16dec o base16enc = I
 Proof
-  (*TODO: Can I somehow prove this exhaustively? Use the same strat for all 256 values of w8. *)
-  (* `blastLib.BBLAST_TAC` ?*)
-  cheat 
+  cheat
 QED
 
-Theorem BASE16_INV_FUN:
-  !(ws: word8 list). base16dec (base16enc (ws)) = ws
+Theorem BASE16_ENC_DEC_ID:
+  base16enc o base16dec = I
 Proof
-  cheat 
+  cheat
 QED
 
 
@@ -67,134 +59,143 @@ QED
 
 (* Base32 Alphabet *)
 
+Definition ALPH_BASE32_DEF:
+  ALPH_BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+End
+
 Definition alph_base32_el_def:
-  alph_base32_el (w: word5) = (EL (w2n w) "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"): char
+  alph_base32_el (n: num) = (EL n ALPH_BASE32): char
 End
 
 Definition alph_base32_index_def:
-  alph_base32_index (c: char) = (n2w $ THE $ INDEX_OF c "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"): word5
+  alph_base32_index (c: char) = (THE $ INDEX_OF c ALPH_BASE32): num
 End
+
+
+(* Base32 Padding and De-Padding *)
+
+Definition base32pad_def:
+    (* Base cases *)
+    base32pad ([]: num list) = ("": string)
+ /\ base32pad [n1; n2] =
+      (MAP alph_base32_el [n1; n2]) ++ "======"
+ /\ base32pad [n1; n2; n3; n4] =  
+      (MAP alph_base32_el [n1; n2; n3; n4]) ++ "===="
+ /\ base32pad [n1; n2; n3; n4; n5] =
+      (MAP alph_base32_el [n1; n2; n3; n4; n5]) ++ "==="
+ /\ base32pad [n1; n2; n3; n4; n5; n6; n7] =
+      (MAP alph_base32_el [n1; n2; n3; n4; n5; n6; n7]) ++ "="
+    (* Recursive case *)
+ /\ base32pad (n1::n2::n3::n4::n5::n6::n7::n8::ns: num list) =  
+      (MAP alph_base32_el [n1; n2; n3; n4; n5; n6; n7; n8]) ++ (base32pad ns)
+End
+
+Definition base32depad_def:
+    (* Base cases *)
+    base32depad ([]: string) = ([]: num list)
+ /\ base32depad (c1::c2::"======") = []
+ /\ base32depad (c1::c2::c3::c4::"====") = []
+ /\ base32depad (c1::c2::c3::c4::c5::"===") = []
+ /\ base32depad (c1::c2::c3::c4::c5::c6::c7::"=") = []
+    (* Recursive case *)
+ /\ base32depad (c1::c2::c3::c4::c5::c6::c7::c8::cs) = [] ++ (base32depad cs)
+End
+(* TODO: Why doesn't this work ^ *)
 
 
 (* Base32 Encoding *)
 
-(* 
-  Generalise functions below into one funtion that 
-  takes one bs: bool[k] where k % 5 = 0 and retruns a list of k/5 chars 
-*) 
+(*
+Definition bar_def:
+  bar (b: bool['a]) = if dimindex (:'a) >= 5 then 
+    (((dimindex(:'a)-1) >< (dimindex(:'a)-5)) b)::(bar (((dimindex(:'a)-6) >< 0) b))
+   else
+    ([]: word5 list) 
+End
+*)
 
-Definition alph_base32_ext_8_10_def:
-  alph_base32_ext_8_10 (x: bool[8]) = (x @@ (0b0w: bool[2])): bool[10]
+Definition b10_to_w5lst_def:
+  b10_to_w5lst (b: bool[10]) =
+    [(9 >< 5) b; (4 >< 0) b]: word5 list
 End
 
-Definition alph_base32_lookup_8_def: 
-  alph_base32_lookup_8 (x: bool[8]) = 
-    STRING (alph_base32_el $ (9 >< 5) (alph_base32_ext_8_10 x)) $
-    STRING (alph_base32_el $ (4 >< 0) (alph_base32_ext_8_10 x)) ""
+Definition b20_to_wd5lst_def:
+  b20_to_w5lst (b: bool[20]) = 
+    (b10_to_w5lst $ (19 >< 10) b) ++ (b10_to_w5lst $ (9 >< 0) b)
 End
 
-Definition alph_base32_ext_16_20_def:
-  alph_base32_ext_16_20 (x: bool[16]) = (x @@ (0b0w: bool[4])): bool[20]
+Definition b25_to_wd5lst_def:
+  b25_to_w5lst (b: bool[25]) =
+    ((25 >< 20) b)::(b20_to_w5lst $ (19 >< 0) b)
 End
 
-Definition alph_base32_lookup_16_def: 
-  alph_base32_lookup_16 (x: bool[16]) =
-    STRING (alph_base32_el $ (19 >< 15) (alph_base32_ext_16_20 x)) $
-    STRING (alph_base32_el $ (14 >< 10) (alph_base32_ext_16_20 x)) $
-    STRING (alph_base32_el $ ( 9 ><  5) (alph_base32_ext_16_20 x)) $
-    STRING (alph_base32_el $ ( 4 ><  0) (alph_base32_ext_16_20 x)) ""
+Definition b35_to_w5lst_def:
+  b35_to_w5lst (b: bool[35]) =
+  (b10_to_w5lst $ (34 >< 25) b) ++ (b25_to_w5lst $ (24 >< 0) b)
 End
 
-Definition alph_base32_ext_24_25_def:
-  alph_base32_ext_24_25 (x: bool[24]) = (x @@ (0b0w: bool[1])): bool[25]
-End
-
-Definition alph_base32_lookup_24_def: 
-  alph_base32_lookup_24 (x: bool[24]) =
-    STRING (alph_base32_el $ (24 >< 20) (alph_base32_ext_24_25 x)) $
-    STRING (alph_base32_el $ (19 >< 15) (alph_base32_ext_24_25 x)) $
-    STRING (alph_base32_el $ (14 >< 10) (alph_base32_ext_24_25 x)) $
-    STRING (alph_base32_el $ ( 9 ><  5) (alph_base32_ext_24_25 x)) $
-    STRING (alph_base32_el $ ( 4 ><  0) (alph_base32_ext_24_25 x)) ""
-End
-
-Definition alph_base32_ext_32_35_def:
-  alph_base32_ext_32_35 (x: bool[32]) = (x @@ (0b0w: bool[3])): bool[35]
-End
-
-Definition alph_base32_lookup_32_def: 
-  alph_base32_lookup_32 (x: bool[32]) =
-    STRING (alph_base32_el $ (34 >< 30) (alph_base32_ext_32_35 x)) $
-    STRING (alph_base32_el $ (29 >< 25) (alph_base32_ext_32_35 x)) $
-    STRING (alph_base32_el $ (24 >< 20) (alph_base32_ext_32_35 x)) $
-    STRING (alph_base32_el $ (19 >< 15) (alph_base32_ext_32_35 x)) $
-    STRING (alph_base32_el $ (14 >< 10) (alph_base32_ext_32_35 x)) $
-    STRING (alph_base32_el $ ( 9 ><  5) (alph_base32_ext_32_35 x)) $
-    STRING (alph_base32_el $ ( 4 ><  0) (alph_base32_ext_32_35 x)) ""
-End
-
-Definition alph_base32_lookup_40_def: 
-  alph_base32_lookup_40 (x: bool[40]) =
-    STRING (alph_base32_el $ (39 >< 35) x) $
-    STRING (alph_base32_el $ (34 >< 30) x) $
-    STRING (alph_base32_el $ (29 >< 25) x) $
-    STRING (alph_base32_el $ (24 >< 20) x) $
-    STRING (alph_base32_el $ (19 >< 15) x) $
-    STRING (alph_base32_el $ (14 >< 10) x) $
-    STRING (alph_base32_el $ ( 9 ><  5) x) $
-    STRING (alph_base32_el $ ( 4 ><  0) x) ""
+Definition b40_to_w5lst_def:
+  b40_to_w5lst (b: bool[40]) =
+    (b20_to_w5lst $ (39 >< 20) b) ++ (b20_to_w5lst $ (19 >< 0) b)
 End
 
 
 Definition base32enc_def:
-    (* Recursive case *)
-    base32enc (w1::w2::w3::w4::w5::ws: word8 list) = 
-      (alph_base32_lookup_40 (concat_word_list [w5; w4; w3; w2; w1])) ++ (base32enc ws)
     (* Base cases *)
- /\ base32enc (w1::w2::w3::w4::[]: word8 list) = 
-      (alph_base32_lookup_32 (concat_word_list [w4; w3; w2; w1]))++ "="
- /\ base32enc (w1::w2::w3::[]: word8 list) = 
-      (alph_base32_lookup_24 (concat_word_list [w3; w2; w1])) ++ "==="
- /\ base32enc (w1::w2::[]: word8 list) = 
-      (alph_base32_lookup_16 (concat_word_list [w2; w1])) ++ "====" 
- /\ base32enc (w1::[]: word8 list) = 
-      (alph_base32_lookup_8 w1) ++ "======" 
- /\ base32enc ([]: word8 list) = ""
+    base32enc ([]: word8 list) = ([]: num list)
+ /\ base32enc [w1] = 
+      MAP w2n 
+    $ b10_to_w5lst 
+    $ w1 @@ (0b0w: bool[2])
+ /\ base32enc [w1; w2] =
+      MAP w2n 
+    $ b20_to_w5lst 
+    $ (concat_word_list [w2; w1]: bool[16]) @@ (0b0w: bool[4])
+ /\ base32enc [w1; w2; w3] =
+      MAP w2n 
+    $ b25_to_w5lst 
+    $ (concat_word_list [w3; w2; w1]: bool[24]) @@ (0b0w: bool[1])
+ /\ base32enc [w1; w2; w3; w4] = 
+      MAP w2n 
+    $ b35_to_w5lst 
+    $ (concat_word_list [w4; w3; w2; w1]: bool[32]) @@ (0b0w: bool[3])
+    (* Recursive case *)
+ /\ base32enc (w1::w2::w3::w4::w5::ws) = 
+      (MAP w2n 
+    $ b40_to_w5lst 
+    $ (concat_word_list [w5; w4; w3; w2; w1]: bool[40])) ++ (base32enc ws)
 End
 
-
 (* RFC 4648 Test Vectors *)
-EVAL ``base32enc [] = ""``
-EVAL ``base32enc [0b01100110w] = "MY======"``
-EVAL ``base32enc [0b01100110w; 0b01101111w] = "MZXQ===="``
-EVAL ``base32enc [0b01100110w; 0b01101111w; 0b01101111w] = "MZXW6==="``
-EVAL ``base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w] = "MZXW6YQ="``
-EVAL ``base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w] = "MZXW6YTB"``
-EVAL ``base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w] = "MZXW6YTBOI======"``
+EVAL ``base32pad $ base32enc [] = ""``
+EVAL ``base32pad $ base32enc [0b01100110w] = "MY======"``
+EVAL ``base32pad $ base32enc [0b01100110w; 0b01101111w] = "MZXQ===="``
+EVAL ``base32pad $ base32enc [0b01100110w; 0b01101111w; 0b01101111w] = "MZXW6==="``
+EVAL ``base32pad $ base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w] = "MZXW6YQ="``
+EVAL ``base32pad $ base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w] = "MZXW6YTB"``
+EVAL ``base32pad $ base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w] = "MZXW6YTBOI======"``
 
 
 (* Base32 Decoding *)
 
-(* TODO: Why doesn't this work? Too many base cases? *)
 Definition base32dec_def:
     (* Base cases *)
-    base32dec ([]: string) = ([]: word8 list)
- /\ base32dec (c1::c2::"======") =
-      [(9 >< 2) (concat_word_list [alph_base32_index c2; alph_base32_index c1])]
- /\ base32dec (c1::c2::c3::c4::"====") = []
- /\ base32dec (c1::c2::c3::c4::c5::"===") = []
- /\ base32dec (c1::c2::c3::c4::c5::c6::c7::"=") = []
-     (* Recursive case*)
- /\ base32dec (c1::c2::c3::c4::c5::c7::c8::cs) = []
+    base32dec ([]: num list) = ([]: word8 list)
+ /\ base32dec [n1; n2] = []
+ /\ base32dec [n1; n2; n3; n4] = []
+ /\ base32dec [n1; n2; n3; n4; n5] = []
+ /\ base32dec [n1; n2; n3; n4; n5; n6; n7] = []
+    (* Recursive case *)
+ /\ base32dec (n1::n2::n3::n4::n5::n6::n7::n8::ns) = []
 End
 
 (* RFC 4648 Test Vectors *)
-EVAL ``base32dec "" = []``
-EVAL ``base32dec "MY======" = [0b01100110w]``
-EVAL ``base32dec "MZXQ====" = [0b01100110w; 0b01101111w]``
-EVAL ``base32dec "MZXW6===" = [0b01100110w; 0b01101111w; 0b01101111w]``
-EVAL ``base32dec "MZXW6YQ=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w]``
-EVAL ``base32dec "MZXW6YTB" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
-EVAL ``base32dec "MZXW6YTBOI======" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
+EVAL ``base32dec $ base32depad "" = []``
+EVAL ``base32dec $ base32depad "MY======" = [0b01100110w]``
+EVAL ``base32dec $ base32depad "MZXQ====" = [0b01100110w; 0b01101111w]``
+EVAL ``base32dec $ base32depad "MZXW6===" = [0b01100110w; 0b01101111w; 0b01101111w]``
+EVAL ``base32dec $ base32depad "MZXW6YQ=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w]``
+EVAL ``base32dec $ base32depad "MZXW6YTB" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
+EVAL ``base32dec $ base32depad "MZXW6YTBOI======" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
 
 val _ = export_theory();
