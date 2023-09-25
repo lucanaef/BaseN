@@ -47,18 +47,16 @@ Proof
     rw [base16enc_def, base16dec_def]
   ) >> (
     rw [base16enc_def, base16dec_def]
-    >> fs [wordsTheory.CONCAT_EXTRACT]
-    (* TODO: How to use this (^) theorem? *)
+    >> Q.SPECL_THEN [`7`, `3`, `0`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:8``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:4``), (``:'d`` |-> ``:8``)] wordsTheory.CONCAT_EXTRACT
+    >> rw [wordsTheory.EXTRACT_ALL_BITS]
   ) 
 QED
-
 
 Theorem BASE16_DEC_ENC_ID:
   base16dec o base16enc = I
 Proof
-  cheat
+  rw [FUN_EQ_THM, BASE16_DEC_ENC_W8S]
 QED
-
 
 Theorem BASE16_ENC_DEC_ID:
   base16enc o base16dec = I
