@@ -86,6 +86,7 @@ End
 
 (* Base32 Padding and De-Padding *)
 
+(* Alternative: Use `PAD_RIGHT` for simplification *)
 Definition base32pad_def:
     (* Base cases *)
     base32pad ([]: num list) = ("": string)
@@ -102,18 +103,16 @@ Definition base32pad_def:
       (MAP alph_base32_el [n1; n2; n3; n4; n5; n6; n7; n8]) ++ (base32pad ns)
 End
 
-Definition base32depad_def:
-    (* Base cases *)
-    base32depad ([]: string) = ([]: num list)
- /\ base32depad (c1::c2::"======") = [] 
- /\ base32depad (c1::c2::c3::c4::"====") = []
- /\ base32depad (c1::c2::c3::c4::c5::"===") = []
- /\ base32depad (c1::c2::c3::c4::c5::c6::c7::"=") = []
-    (* Recursive case *)
- /\ base32depad (c1::c2::c3::c4::c5::c6::c7::c8::cs) = [] ++ (base32depad cs)
+(* TODO: Implement *)
+Definition basse32depad_def:
+  base32depad cs = case cs of
+    | ([]: string) => ([]: num list)
+    | (c1::c2::"######") => []
+    | (c1::c2::c3::c4::"####") => []
+    | (c1::c2::c3::c4::c5::"===") => []
+    | (c1::c2::c3::c4::c5::c6::c7::"=") => []
+    | (c1::c2::c3::c4::c5::c6::c7::c8::cs) => [] ++ (base32depad cs)
 End
-(* TODO: Why doesn't this work ^ *)
-
 
 (* Base32 Encoding *)
 
