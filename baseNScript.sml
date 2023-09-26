@@ -88,31 +88,32 @@ End
 
 (* Alternative: Use `PAD_RIGHT` for simplification *)
 Definition base32pad_def:
+  base32pad ns = case ns of
     (* Base cases *)
-    base32pad ([]: num list) = ("": string)
- /\ base32pad [n1; n2] =
-      (MAP alph_base32_el [n1; n2]) ++ "======"
- /\ base32pad [n1; n2; n3; n4] =  
-      (MAP alph_base32_el [n1; n2; n3; n4]) ++ "===="
- /\ base32pad [n1; n2; n3; n4; n5] =
-      (MAP alph_base32_el [n1; n2; n3; n4; n5]) ++ "==="
- /\ base32pad [n1; n2; n3; n4; n5; n6; n7] =
-      (MAP alph_base32_el [n1; n2; n3; n4; n5; n6; n7]) ++ "="
+    | ([]: num list) => ("": string)
+    | [n1; n2] => (MAP alph_base32_el ns) ++ "======"
+    | [n1; n2; n3; n4] => (MAP alph_base32_el ns) ++ "===="
+    | [n1; n2; n3; n4; n5] => (MAP alph_base32_el ns) ++ "===" 
+    | [n1; n2; n3; n4; n5; n6; n7] => (MAP alph_base32_el ns) ++ "="
     (* Recursive case *)
- /\ base32pad (n1::n2::n3::n4::n5::n6::n7::n8::ns: num list) =  
-      (MAP alph_base32_el [n1; n2; n3; n4; n5; n6; n7; n8]) ++ (base32pad ns)
+    | (n1::n2::n3::n4::n5::n6::n7::n8::nss: num list) 
+    => (MAP alph_base32_el [n1; n2; n3; n4; n5; n6; n7; n8]) ++ (base32pad nss)
 End
 
-(* TODO: Implement *)
+
 Definition basse32depad_def:
   base32depad cs = case cs of
+    (* Base cases *)
     | ([]: string) => ([]: num list)
-    | (c1::c2::"######") => []
-    | (c1::c2::c3::c4::"####") => []
-    | (c1::c2::c3::c4::c5::"===") => []
-    | (c1::c2::c3::c4::c5::c6::c7::"=") => []
-    | (c1::c2::c3::c4::c5::c6::c7::c8::cs) => [] ++ (base32depad cs)
+    | (c1::c2::"======") => MAP alph_base32_index [c1; c2]
+    | (c1::c2::c3::c4::"====") => MAP alph_base32_index [c1; c2; c3; c4]
+    | (c1::c2::c3::c4::c5::"===") => MAP alph_base32_index [c1; c2; c3; c4; c5]
+    | (c1::c2::c3::c4::c5::c6::c7::"=") => MAP alph_base32_index [c1; c2; c3; c4; c5; c6; c7]
+    (* Recursive case *)
+    | (c1::c2::c3::c4::c5::c6::c7::c8::css) 
+    => MAP alph_base32_index [c1; c2; c3; c4; c5; c6; c7; c8] ++ (base32depad css)
 End
+
 
 (* Base32 Encoding *)
 
@@ -231,7 +232,7 @@ Definition base32dec_def:
  /\ base32dec (n1::n2::n3::n4::n5::n6::n7::n8::ns) =
       (b40_to_w8lst
     $ (concat_word_list
-    $ (MAP n2w [n7; n6; n5; n4; n3; n2; n1]: word5 list)): bool[40]) ++ (base32dec ns)
+    $ (MAP n2w [n8; n7; n6; n5; n4; n3; n2; n1]: word5 list)): bool[40]) ++ (base32dec ns)
 End
 
 (* RFC 4648 Test Vectors *)
