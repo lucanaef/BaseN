@@ -1,5 +1,5 @@
 open HolKernel Parse boolLib bossLib;
-open listTheory stringTheory wordsTheory wordsLib;
+open listTheory stringTheory arithmeticTheory wordsTheory wordsLib;
 
 val _ = new_theory "baseN";
 
@@ -30,8 +30,8 @@ EVAL ``MAP (λi. EL i ALPH_BASE16) $ base16enc [0b11011110w; 0b10101101w; 0b1011
 
 Definition base16dec_def:
     base16dec ([]: num list) = ([]: word8 list)
- /\ base16dec (c1::c2::cs) = 
-      ((n2w c1: word4) @@ (n2w c2: word4))::(base16dec cs)
+ /\ base16dec (n1::n2::ns) = 
+      ((n2w n1: word4) @@ (n2w n2: word4))::(base16dec ns)
 End
 
 EVAL ``base16dec $ MAP (λc. THE $ INDEX_OF c ALPH_BASE16) "" = []``
@@ -40,7 +40,7 @@ EVAL ``base16dec $ MAP (λc. THE $ INDEX_OF c ALPH_BASE16) "DEADBEEF" = [0b11011
 
 (* Theorems *)
 
-Theorem BASE16_DEC_ENC_W8S:
+Theorem BASE16_DEC_ENC:
   !(ws: word8 list). base16dec (base16enc ws) = ws
 Proof
   Induct_on `ws` >- (
@@ -55,13 +55,64 @@ QED
 Theorem BASE16_DEC_ENC_ID:
   base16dec o base16enc = I
 Proof
-  rw [FUN_EQ_THM, BASE16_DEC_ENC_W8S]
+  rw [FUN_EQ_THM, BASE16_DEC_ENC]
+QED
+
+
+Definition wellformed_base16_def:
+  wellformed_base16 (ns: num list) = 
+       (EVEN (LENGTH ns) /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE16))
+End
+
+Triviality STRLEN_ALPH_BASE16:
+  STRLEN ALPH_BASE16 = 16
+Proof
+  rw [ALPH_BASE16_DEF]
+QED
+
+Theorem BASE16_ENC_DEC:
+  !(ns: num list). wellformed_base16 ns ==> base16enc (base16dec ns) = ns
+Proof
+  gen_tac
+  >> completeInduct_on `LENGTH ns`
+  >> gen_tac 
+  >> Cases_on `ns` 
+  >- rw [wellformed_base16_def, base16enc_def, base16dec_def]
+  >> Cases_on `t` 
+  >- rw [wellformed_base16_def]  
+  >> rw [wellformed_base16_def]
+  >> rw [base16enc_def, base16dec_def]
+  >- (    
+    Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
+    >> rw []
+    >> REWRITE_TAC [GSYM STRLEN_ALPH_BASE16]
+    >> qpat_x_assum `∀n. n = h ∨ n = h' ∨ MEM n t' ⇒ n < STRLEN ALPH_BASE16` $ irule_at Any
+    >> rw []
+  ) >- (
+    Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
+    >> rw []
+    >> REWRITE_TAC [GSYM STRLEN_ALPH_BASE16]
+    >> qpat_x_assum `∀n. n = h ∨ n = h' ∨ MEM n t' ⇒ n < STRLEN ALPH_BASE16` $ irule_at Any
+    >> rw []
+  ) >> (
+    qpat_x_assum `EVEN (SUC (SUC (LENGTH _)))` MP_TAC
+    >> ONCE_REWRITE_TAC [EVEN]
+    >> ONCE_REWRITE_TAC [GSYM ODD_EVEN]
+    >> ONCE_REWRITE_TAC [ODD]
+    >> ONCE_REWRITE_TAC [GSYM EVEN_ODD]
+    >> qpat_x_assum `∀n. n = h ∨ n = h' ∨ MEM n t' ⇒ n < STRLEN ALPH_BASE16` MP_TAC
+    >> rw [DISJ_IMP_THM, FORALL_AND_THM]
+    >> qpat_x_assum `∀n. MEM n t' ⇒ n < STRLEN ALPH_BASE16` MP_TAC
+    >> qpat_x_assum `EVEN (LENGTH t')` MP_TAC
+    >> REWRITE_TAC [AND_IMP_INTRO]
+    >> gvs [GSYM wellformed_base16_def]
+  )
 QED
 
 Theorem BASE16_ENC_DEC_ID:
-  base16enc o base16dec = I
+  !ns. wellformed_base16 ns ==> (base16enc o base16dec) ns = I ns
 Proof
-  cheat
+  rw [FUN_EQ_THM, BASE16_ENC_DEC]
 QED
 
 
