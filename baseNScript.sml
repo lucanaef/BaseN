@@ -181,11 +181,11 @@ Definition b10_to_w5lst_def:
   b10_to_w5lst (b: bool[10]) = [(9 >< 5) b; (4 >< 0) b]: word5 list
 End
 
-Definition b20_to_wd5lst_def:
+Definition b20_to_w5lst_def:
   b20_to_w5lst (b: bool[20]) = (b10_to_w5lst $ (19 >< 10) b) ++ (b10_to_w5lst $ (9 >< 0) b)
 End
 
-Definition b25_to_wd5lst_def:
+Definition b25_to_w5lst_def:
   b25_to_w5lst (b: bool[25]) = ((25 >< 20) b)::(b20_to_w5lst $ (19 >< 0) b)
 End
 
@@ -236,23 +236,23 @@ EVAL ``base32pad $ base32enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w
 
 (* Base32 Decoding *)
 
-Definition b8_to_w8lst:
+Definition b8_to_w8lst_def:
   b8_to_w8lst (b: bool[8]) = [b]: word8 list
 End
 
-Definition b16_to_w8lst:
+Definition b16_to_w8lst_def:
   b16_to_w8lst (b: bool[16]) = ((15 >< 8) b)::(b8_to_w8lst $ (7 >< 0) b)
 End
 
-Definition b24_to_w8lst:
+Definition b24_to_w8lst_def:
   b24_to_w8lst (b: bool[24]) = ((23 >< 16) b)::(b16_to_w8lst $ (15 >< 0) b)
 End
 
-Definition b32_to_w8lst:
+Definition b32_to_w8lst_def:
   b32_to_w8lst (b: bool[32]) = ((31 >< 24) b)::(b24_to_w8lst $ (23 >< 0) b)
 End
 
-Definition b40_to_w8lst:
+Definition b40_to_w8lst_def:
   b40_to_w8lst (b: bool[40]) = ((39 >< 32) b)::(b32_to_w8lst $ (31 >< 0) b)
 End
 
@@ -294,5 +294,186 @@ EVAL ``base32dec $ base32depad "MZXW6===" = [0b01100110w; 0b01101111w; 0b0110111
 EVAL ``base32dec $ base32depad "MZXW6YQ=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w]``
 EVAL ``base32dec $ base32depad "MZXW6YTB" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
 EVAL ``base32dec $ base32depad "MZXW6YTBOI======" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
+
+
+(* Theorems *)
+
+Theorem BASE32_DEC_ENC_LENGTH1:
+  !(ws: word8 list). LENGTH ws = 1 ==> base32dec (base32enc ws) = ws
+Proof
+  Cases_on `ws` 
+  >> rw [] 
+  >> rw [base32enc_def, b10_to_w5lst_def]
+  >> rw [base32dec_def, MAP, n2w_w2n, b8_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+QED
+
+Theorem BASE32_DEC_ENC_LENGTH2:
+  !(ws: word8 list). LENGTH ws = 2 ==> base32dec (base32enc ws) = ws
+Proof
+  Cases_on `ws` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> rw [base32enc_def, b20_to_w5lst_def]
+  >> rw [base32dec_def, b10_to_w5lst_def, b16_to_w8lst_def, b8_to_w8lst_def]
+  >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+QED
+
+Theorem BASE32_DEC_ENC_LENGTH3:
+  !(ws: word8 list). LENGTH ws = 3 ==> base32dec (base32enc ws) = ws
+Proof
+  Cases_on `ws` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t`
+  >> rw [base32enc_def, b25_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
+  >> rw [base32dec_def, MAP, b16_to_w8lst_def, b24_to_w8lst_def]
+  >> ntac 2 $ SIMP_TAC (std_ss++WORD_LOGIC_ss) []
+  >> rw [b8_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+QED
+
+Theorem BASE32_DEC_ENC_LENGTH4:
+  !(ws: word8 list). LENGTH ws = 4 ==> base32dec (base32enc ws) = ws
+Proof
+  Cases_on `ws` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'`
+  >> rw [base32enc_def, b35_to_w5lst_def, b10_to_w5lst_def, b25_to_w5lst_def, b20_to_w5lst_def] 
+  >> rw [base32dec_def, b32_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b24_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b16_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b8_to_w8lst_def]
+  >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw []
+QED
+
+Theorem BASE32_DEC_ENC_LENGTH5:
+  !(ws: word8 list). LENGTH ws = 5 ==> base32dec (base32enc ws) = ws
+Proof
+  Cases_on `ws` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t`
+  >> rw [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
+  >> rw [base32dec_def, b40_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b32_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b24_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b16_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b8_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+QED
+
+Theorem BASE32_DEC_ENC_LENGTH6:
+  !(ws: word8 list). LENGTH ws = 6 ==> base32dec (base32enc ws) = ws
+Proof
+  Cases_on `ws` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'`
+  >> rw [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
+  >> rw [base32dec_def, b40_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b32_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b24_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b16_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b8_to_w8lst_def]
+  >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) [] 
+QED
+
+Theorem BASE32_DEC_ENC_LENGTH7:
+  !(ws: word8 list). LENGTH ws = 7 ==> base32dec (base32enc ws) = ws
+Proof
+  Cases_on `ws` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t` >- (
+    rw []
+  )
+  >> Cases_on `t'` >- (
+    rw []
+  )
+  >> Cases_on `t`
+  >> rw [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
+  >> rw [base32dec_def, b40_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b32_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b24_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b16_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b8_to_w8lst_def]
+  >> ntac 3 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+QED
+
 
 val _ = export_theory();
