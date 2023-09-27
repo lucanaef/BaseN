@@ -304,19 +304,17 @@ Proof
   Cases_on `ws` 
   >> rw [] 
   >> rw [base32enc_def, b10_to_w5lst_def]
-  >> rw [base32dec_def, MAP, n2w_w2n, b8_to_w8lst_def]
+  >> rw [base32dec_def, n2w_w2n, b8_to_w8lst_def]
   >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
 Theorem BASE32_DEC_ENC_LENGTH2:
   !(ws: word8 list). LENGTH ws = 2 ==> base32dec (base32enc ws) = ws
 Proof
-  Cases_on `ws` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
+  (* Trivial cases *)
+  Cases_on `ws` >- rw []
+  >> Cases_on `t` >- rw []
+  (* Main case *)
   >> rw [base32enc_def, b20_to_w5lst_def]
   >> rw [base32dec_def, b10_to_w5lst_def, b16_to_w8lst_def, b8_to_w8lst_def]
   >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
@@ -325,154 +323,72 @@ QED
 Theorem BASE32_DEC_ENC_LENGTH3:
   !(ws: word8 list). LENGTH ws = 3 ==> base32dec (base32enc ws) = ws
 Proof
-  Cases_on `ws` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
+  (* Trivial cases *)
+  Cases_on `ws` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
   >> Cases_on `t`
+  (* Main case *)
   >> rw [base32enc_def, b25_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
-  >> rw [base32dec_def, MAP, b16_to_w8lst_def, b24_to_w8lst_def]
+  >> rw [base32dec_def, b16_to_w8lst_def, b24_to_w8lst_def] 
   >> ntac 2 $ SIMP_TAC (std_ss++WORD_LOGIC_ss) []
-  >> rw [b8_to_w8lst_def]
+  >> rw [b8_to_w8lst_def] 
   >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
 Theorem BASE32_DEC_ENC_LENGTH4:
   !(ws: word8 list). LENGTH ws = 4 ==> base32dec (base32enc ws) = ws
 Proof
-  Cases_on `ws` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
+  (* Trivial cases *)
+  Cases_on `ws` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
   >> Cases_on `t'`
+  (* Main case *)
   >> rw [base32enc_def, b35_to_w5lst_def, b10_to_w5lst_def, b25_to_w5lst_def, b20_to_w5lst_def] 
-  >> rw [base32dec_def, b32_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b24_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b16_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b8_to_w8lst_def]
-  >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw []
+  >> rw [base32dec_def, b32_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b24_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b16_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b8_to_w8lst_def] >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) [] >> rw []
 QED
 
-Theorem BASE32_DEC_ENC_LENGTH5:
-  !(ws: word8 list). LENGTH ws = 5 ==> base32dec (base32enc ws) = ws
+Theorem BASE32_DEC_ENC:
+  !(ws: word8 list). base32dec (base32enc ws) = ws
 Proof
-  Cases_on `ws` >- (
-    rw []
+  gen_tac
+  >> completeInduct_on `LENGTH ws`
+  >> Cases_on `v < 5` >- (
+    (* Base cases *)
+    Cases_on `v = 0` >- rw [base32enc_def, base32dec_def]
+    >> Cases_on `v = 1` >- rw [BASE32_DEC_ENC_LENGTH1]
+    >> Cases_on `v = 2` >- rw [BASE32_DEC_ENC_LENGTH2]
+    >> Cases_on `v = 3` >- rw [BASE32_DEC_ENC_LENGTH3]
+    >> Cases_on `v = 4` >- rw [BASE32_DEC_ENC_LENGTH4]
+    >> rw []
+  ) >> (
+    (* Trivial cases *) 
+    Cases_on `ws` >- rw [] 
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    (* Recursive case *)
+    >> rw [base32enc_def]
+    >> rw [b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
+    >> rw [base32dec_def]
+    >> rw [b40_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b32_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b24_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b16_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b8_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
   )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t`
-  >> rw [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
-  >> rw [base32dec_def, b40_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b32_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b24_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b16_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b8_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
-Theorem BASE32_DEC_ENC_LENGTH6:
-  !(ws: word8 list). LENGTH ws = 6 ==> base32dec (base32enc ws) = ws
+Theorem BASE32_DEC_ENC_ID:
+  base32dec o base32enc = I
 Proof
-  Cases_on `ws` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'`
-  >> rw [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
-  >> rw [base32dec_def, b40_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b32_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b24_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b16_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b8_to_w8lst_def]
-  >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) [] 
-QED
-
-Theorem BASE32_DEC_ENC_LENGTH7:
-  !(ws: word8 list). LENGTH ws = 7 ==> base32dec (base32enc ws) = ws
-Proof
-  Cases_on `ws` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t` >- (
-    rw []
-  )
-  >> Cases_on `t'` >- (
-    rw []
-  )
-  >> Cases_on `t`
-  >> rw [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
-  >> rw [base32dec_def, b40_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b32_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b24_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b16_to_w8lst_def]
-  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b8_to_w8lst_def]
-  >> ntac 3 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  rw [FUN_EQ_THM, BASE32_DEC_ENC]
 QED
 
 
