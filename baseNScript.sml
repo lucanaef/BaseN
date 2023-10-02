@@ -1,5 +1,6 @@
 open HolKernel Parse boolLib bossLib;
 open listTheory stringTheory arithmeticTheory wordsTheory wordsLib;
+open patternMatchesLib;
 
 val _ = new_theory "baseN";
 
@@ -81,7 +82,8 @@ Proof
   >> Cases_on `t` 
   >- rw [wellformed_base16_def]  
   >> rw [wellformed_base16_def]
-  >> rw [base16enc_def, base16dec_def]
+  >> rw [base16enc_def, base16dec_def] (* TODO: Use `fs` instead to avoid case
+  split *)
   >- (    
     Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
     >> rw []
@@ -137,7 +139,6 @@ End
 
 (* Base32 Padding and De-Padding *)
 
-(* Alternative: Use `PAD_RIGHT` for simplification *)
 Definition base32pad_def:
   base32pad ns = case ns of
     (* Base cases *)
@@ -152,7 +153,7 @@ Definition base32pad_def:
 End
 
 
-Definition basse32depad_def:
+Definition base32depad_def:
   base32depad cs = case cs of
     (* Base cases *)
     | ([]: string) => ([]: num list)
@@ -167,15 +168,6 @@ End
 
 
 (* Base32 Encoding *)
-
-(*
-Definition bar_def:
-  bar (b: bool['a]) = if dimindex (:'a) >= 5 then 
-    (((dimindex(:'a)-1) >< (dimindex(:'a)-5)) b)::(bar (((dimindex(:'a)-6) >< 0) b))
-   else
-    ([]: word5 list) 
-End
-*)
 
 Definition b10_to_w5lst_def:
   b10_to_w5lst (b: bool[10]) = [(9 >< 5) b; (4 >< 0) b]: word5 list
@@ -256,6 +248,7 @@ Definition b40_to_w8lst_def:
   b40_to_w8lst (b: bool[40]) = ((39 >< 32) b)::(b32_to_w8lst $ (31 >< 0) b)
 End
 
+
 Definition base32dec_def:
     (* Base cases *)
     base32dec ([]: num list) = ([]: word8 list)
@@ -298,13 +291,106 @@ EVAL ``base32dec $ base32depad "MZXW6YTBOI======" = [0b01100110w; 0b01101111w; 0
 
 (* Theorems *)
 
+(* Padding Theorems *)
+
+Definition wf_base32_numlst_def:
+  wf_base32_numlst (ns: num list) = 
+    (MEM (LENGTH ns MOD 8) [0; 2; 5; 7] 
+  /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32))
+End
+
+Triviality ALL_DISTINCT_ALPH_BASE32: 
+  ALL_DISTINCT ALPH_BASE32
+Proof
+  rw [ALPH_BASE32_DEF]
+QED
+
+Theorem ALPH_BASE32_INDEX_EL:
+  !n. n < STRLEN ALPH_BASE32 ==> alph_base32_index (alph_base32_el n) = n
+Proof
+  rw [alph_base32_el_def, alph_base32_index_def]
+  >> ASSUME_TAC ALL_DISTINCT_ALPH_BASE32 
+  >> rw [ALL_DISTINCT_INDEX_OF_EL]
+QED
+
+Theorem BASE32_PAD_DEPAD_LENGTH0:
+  !ns. LENGTH ns = 0 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+Proof
+  ONCE_REWRITE_TAC [base32pad_def]
+  >> ONCE_REWRITE_TAC [base32depad_def]
+  >> rw []
+QED
+
+Theorem BASE32_PAD_DEPAD_LENGTH2:
+  !ns. LENGTH ns = 2 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+Proof
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'`
+  >> rw [wf_base32_numlst_def]
+  >> rw [base32pad_def]
+  >> rw [base32depad_def]
+  >> ntac 3 $ rw [ALPH_BASE32_INDEX_EL]
+QED
+
+Theorem BASE32_PAD_DEPAD_LENGTH5:
+  !ns. LENGTH ns = 5 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+Proof
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t`
+  >> rw [base32pad_def]
+  >> rw [base32depad_def]
+  (*
+  TODO: 
+  Stronger precondition needed to be able to prove that decoding is unique.
+  Instead of !n \in ns. n < length alph_base32
+  Have: !n \in ns. IS_SOME EL n alph_base32
+  *)
+QED
+
+Theorem BASE32_PAD_DEPAD_LENGTH7:
+  !ns. LENGTH ns = 7 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+Proof
+  cheat
+QED
+
+
+(* TODO: Reminaing cases *)
+
+Theorem BASE32_PAD_DEPAD:
+  !ns. wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+Proof
+  gen_tac 
+  >> completeInduct_on `LENGTH ns` 
+  >> Cases_on `v < 8`
+  (* Base cases *)
+    (* Case: base32depad (base32pad [n1]) = [n1] *)
+  >- Cases_on `v = 0` >- rw [BASE32_PAD_DEPAD_LENGTH0]
+    (* Case: base32depad (base32pad [n1]) = [n1] *)
+  >> Cases_on `v = 1` >- rw [wf_base32_numlst_def]
+    (* Case: base32depad (base32pad [n1; n2]) = [n1; n2] *)
+  >> Cases_on `v = 2` >- rw [BASE32_PAD_DEPAD_LENGTH2]
+  >> Cases_on `v = 3` >- rw [wf_base32_numlst_def] 
+  >> Cases_on `v = 4` >- rw [wf_base32_numlst_def] 
+  >> Cases_on `v = 5` >- rw [BASE32_PAD_DEPAD_LENGTH5] 
+  >> Cases_on `v = 6` >- rw [wf_base32_numlst_def]
+  >> Cases_on `v = 7` >- rw [BASE32_PAD_DEPAD_LENGTH7]
+  >> cheat
+QED
+
+(* En- and Decoding Theorems *)
+
 Theorem BASE32_DEC_ENC_LENGTH1:
   !(ws: word8 list). LENGTH ws = 1 ==> base32dec (base32enc ws) = ws
 Proof
   Cases_on `ws` 
   >> rw [] 
   >> rw [base32enc_def, b10_to_w5lst_def]
-  >> rw [base32dec_def, n2w_w2n, b8_to_w8lst_def]
+  >> rw [base32dec_def, b8_to_w8lst_def]
   >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
@@ -389,6 +475,88 @@ Theorem BASE32_DEC_ENC_ID:
   base32dec o base32enc = I
 Proof
   rw [FUN_EQ_THM, BASE32_DEC_ENC]
+QED
+
+
+
+Definition wellformed_base32_def:
+  wellformed_base32 (ns: num list) = 
+    ((LENGTH ns MOD 8 <> 1) /\ (LENGTH ns MOD 8 <> 3) /\ (LENGTH ns MOD 8 <> 6)
+ /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32))
+End
+
+Triviality STRLEN_ALPH_BASE32:
+  STRLEN ALPH_BASE32 = 32
+Proof
+  rw [ALPH_BASE32_DEF]
+QED
+
+Theorem BASE32_ENC_DEC_LENGTH2:
+  !(ns: num list). LENGTH ns = 2 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+Proof
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> rw []
+  >> REWRITE_TAC [base32dec_def, b8_to_w8lst_def]
+  >> REWRITE_TAC [base32enc_def, b10_to_w5lst_def]
+  >> REWRITE_TAC [MAP]
+  >> REWRITE_TAC [concat_word_list_def]
+  >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+  >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:5``)] w2n_n2w]
+  >> first_x_assum mp_tac
+  >> REWRITE_TAC [wellformed_base32_def]
+  >> rw [STRLEN_ALPH_BASE32]
+
+(*
+      ∀n. n = h ∨ n = h' ⇒ n < 32
+    --------------------------------
+    w2n ((4 >< 2) (n2w h') ≪ 2) = h'
+  
+  
+    This (^) obviously doesn't hold !h':word5.
+    Because we are missing the constraint that the 2 LSB of h' MBZ.
+    Should this be part of a more elaborate definition of `wellformed_base32`?
+*)
+QED
+
+Theorem BASE32_ENC_DEC_LENGTH4:
+  !(ns: num list). LENGTH ns = 4 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+Proof
+  cheat
+QED
+
+Theorem BASE32_ENC_DEC_LENGTH5:
+  !(ns: num list). LENGTH ns = 5 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+Proof
+  cheat
+QED
+
+Theorem BASE32_ENC_DEC_LENGTH7:
+  !(ns: num list). LENGTH ns = 7 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+Proof
+  cheat
+QED
+
+Theorem BASE32_ENC_DEC:
+  !(ns: num list). wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+Proof
+  gen_tac
+  >> completeInduct_on `LENGTH ns` 
+  >> Cases_on `v < 8` >- (
+    (* Base cases *)
+    Cases_on `v = 0` >- rw [base32dec_def, base32enc_def]
+    >> Cases_on `v = 1` >- rw [wellformed_base32_def]
+    >> Cases_on `v = 2` >- rw [BASE32_ENC_DEC_LENGTH2]
+    >> Cases_on `v = 3` >- rw [wellformed_base32_def]
+    >> Cases_on `v = 4` >- rw [BASE32_ENC_DEC_LENGTH4]
+    >> Cases_on `v = 5` >- rw [BASE32_ENC_DEC_LENGTH5]
+    >> Cases_on `v = 6` >- rw [wellformed_base32_def]
+    >> Cases_on `v = 7` >- rw [BASE32_ENC_DEC_LENGTH7]
+    >> rw []
+  ) >> (
+    (* Recursive case *)
+    cheat
+  )
 QED
 
 
