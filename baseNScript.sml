@@ -305,6 +305,15 @@ Proof
   rw [ALPH_BASE32_DEF]
 QED
 
+Triviality PAD_NOT_IN_ALPH_BASE32:
+  !(n: num). n < LENGTH ALPH_BASE32 ==> alph_base32_el n <> #"="
+Proof
+  completeInduct_on `n`
+  >> rw [alph_base32_el_def, ALPH_BASE32_DEF]
+  >> ntac 16 $ EVERY [Cases_on `n`, rw [], Cases_on `n'`, rw []]
+  >> fs []
+QED
+
 Theorem ALPH_BASE32_INDEX_EL:
   !n. n < STRLEN ALPH_BASE32 ==> alph_base32_index (alph_base32_el n) = n
 Proof
@@ -312,6 +321,7 @@ Proof
   >> ASSUME_TAC ALL_DISTINCT_ALPH_BASE32 
   >> rw [ALL_DISTINCT_INDEX_OF_EL]
 QED
+
 
 Theorem BASE32_PAD_DEPAD_LENGTH0:
   !ns. LENGTH ns = 0 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
@@ -330,7 +340,7 @@ Proof
   >> rw [wf_base32_numlst_def]
   >> rw [base32pad_def]
   >> rw [base32depad_def]
-  >> ntac 3 $ rw [ALPH_BASE32_INDEX_EL]
+  >> rw [ALPH_BASE32_INDEX_EL]
 QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH5:
@@ -344,12 +354,10 @@ Proof
   >> Cases_on `t`
   >> rw [base32pad_def]
   >> rw [base32depad_def]
-  (*
-  TODO: 
-  Stronger precondition needed to be able to prove that decoding is unique.
-  Instead of !n \in ns. n < length alph_base32
-  Have: !n \in ns. IS_SOME EL n alph_base32
-  *)
+  >> fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+  >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+  >> fs [wf_base32_numlst_def]
+  >> METIS_TAC []
 QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH7:
