@@ -323,6 +323,17 @@ Proof
 QED
 
 
+Theorem BASE32_DEPAD_PAD:
+  !s ns. ns = base32depad s ==> base32pad ns = s
+Proof
+  cheat
+  (* 
+     I'm not sure how I can prove the theorem for the different cases when they
+      all have the same length (i.e. not via completeInduct_on `LENGTH _`) 
+  *)
+QED
+
+
 Theorem BASE32_PAD_DEPAD_LENGTH0:
   !ns. LENGTH ns = 0 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
 Proof
@@ -363,11 +374,21 @@ QED
 Theorem BASE32_PAD_DEPAD_LENGTH7:
   !ns. LENGTH ns = 7 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
 Proof
-  cheat
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t`
+  >> rw [base32pad_def]
+  >> rw [base32depad_def]
+  >> fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+  >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+  >> fs [wf_base32_numlst_def]
+  >> METIS_TAC []
 QED
-
-
-(* TODO: Reminaing cases *)
 
 Theorem BASE32_PAD_DEPAD:
   !ns. wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
@@ -376,18 +397,35 @@ Proof
   >> completeInduct_on `LENGTH ns` 
   >> Cases_on `v < 8`
   (* Base cases *)
-    (* Case: base32depad (base32pad [n1]) = [n1] *)
-  >- Cases_on `v = 0` >- rw [BASE32_PAD_DEPAD_LENGTH0]
-    (* Case: base32depad (base32pad [n1]) = [n1] *)
+  >> Cases_on `v = 0` >- rw [BASE32_PAD_DEPAD_LENGTH0]
   >> Cases_on `v = 1` >- rw [wf_base32_numlst_def]
-    (* Case: base32depad (base32pad [n1; n2]) = [n1; n2] *)
   >> Cases_on `v = 2` >- rw [BASE32_PAD_DEPAD_LENGTH2]
   >> Cases_on `v = 3` >- rw [wf_base32_numlst_def] 
   >> Cases_on `v = 4` >- rw [wf_base32_numlst_def] 
   >> Cases_on `v = 5` >- rw [BASE32_PAD_DEPAD_LENGTH5] 
   >> Cases_on `v = 6` >- rw [wf_base32_numlst_def]
   >> Cases_on `v = 7` >- rw [BASE32_PAD_DEPAD_LENGTH7]
-  >> cheat
+  >> rw []
+  (* Recursive case *)
+  Cases_on `ns` >- rw [] 
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  (*
+    0.  ∀m. m < v ⇒
+          ∀ns. m = LENGTH ns ⇒ wf_base32_numlst ns ⇒
+              base32depad (base32pad ns) = ns
+    1.  v >= 8
+   ------------------------------------
+        ∀ns. v = LENGTH ns ⇒ wf_base32_numlst ns ⇒
+          base32depad (base32pad ns) = ns
+  *)
+
+  (* TODO: I'm not sure how this prove works technically. *)
 QED
 
 (* En- and Decoding Theorems *)
@@ -521,9 +559,15 @@ Proof
     w2n ((4 >< 2) (n2w h') ≪ 2) = h'
   
   
-    This (^) obviously doesn't hold !h':word5.
+    This (^) obviously doesn't hold !(h': word5).
     Because we are missing the constraint that the 2 LSB of h' MBZ.
     Should this be part of a more elaborate definition of `wellformed_base32`?
+
+    Needed constraints:
+      LENGTH ns = 2 ==> ((1 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[2]
+      LENGTH ns = 4 ==> ((3 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[4]
+      LENGTH ns = 5 ==> ((0 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[1]
+      LENGTH ns = 7 ==> ((2 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[3]
 *)
 QED
 
