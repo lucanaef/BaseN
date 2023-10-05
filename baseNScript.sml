@@ -1,8 +1,25 @@
 open HolKernel Parse boolLib bossLib;
 open listTheory stringTheory arithmeticTheory wordsTheory wordsLib;
-open patternMatchesLib;
+open patternMatchesLib blastLib;
 
 val _ = new_theory "baseN";
+
+
+(*
+              :word8 list -> num list              :num list -> string
+                    +----------+                       +----------+
+ Encoding  +------  |  *_ENC   |---------------------->|  *_PAD   |  ------+
+           |        +----------+                       +----------+        |
+           |                                                               |
+           |                                                               |
+           |                                                               |
+           |        +----------+                       +----------+        |
+           +----->  |  *_DEC   |<----------------------| *_DEPAD  |  <-----+  Decoding
+                    +----------+                       +----------+
+              :num list -> word8 list              :string -> num list
+*)
+
+
 
 (****************************************)
 (*               Base16                 *)
@@ -524,11 +541,17 @@ Proof
 QED
 
 
-
-Definition wellformed_base32_def:
-  wellformed_base32 (ns: num list) = 
+Definition wf_base32_def:
+  wf_base32 (ns: num list) = 
+    (* Length *)
     ((LENGTH ns MOD 8 <> 1) /\ (LENGTH ns MOD 8 <> 3) /\ (LENGTH ns MOD 8 <> 6)
- /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32))
+    (* Domain *)
+ /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32)
+    (* LSB Constraints *)
+ /\ (LENGTH ns = 2 ==> ((1 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[2]))
+ /\ (LENGTH ns = 4 ==> ((3 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[4]))
+ /\ (LENGTH ns = 5 ==> ((0 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[1]))
+ /\ (LENGTH ns = 7 ==> ((2 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[3])))
 End
 
 Triviality STRLEN_ALPH_BASE32:
@@ -537,79 +560,155 @@ Proof
   rw [ALPH_BASE32_DEF]
 QED
 
+Triviality SHIFT_2_LSB_MBZ:
+ !(h: word5). (1 >< 0) h: bool[2] = 0w ==> (4 >< 2) h ≪ 2 = h
+Proof
+  BBLAST_TAC
+QED
+
 Theorem BASE32_ENC_DEC_LENGTH2:
-  !(ns: num list). LENGTH ns = 2 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+  !(ns: num list). LENGTH ns = 2 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
   >> rw []
   >> REWRITE_TAC [base32dec_def, b8_to_w8lst_def]
   >> REWRITE_TAC [base32enc_def, b10_to_w5lst_def]
-  >> REWRITE_TAC [MAP]
-  >> REWRITE_TAC [concat_word_list_def]
+  >> REWRITE_TAC [MAP, concat_word_list_def]
   >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
   >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:5``)] w2n_n2w]
   >> first_x_assum mp_tac
-  >> REWRITE_TAC [wellformed_base32_def]
-  >> rw [STRLEN_ALPH_BASE32]
+  >> REWRITE_TAC [wf_base32_def]
+  >> rw [STRLEN_ALPH_BASE32, SHIFT_2_LSB_MBZ]
+QED
 
-(*
-      ∀n. n = h ∨ n = h' ⇒ n < 32
-    --------------------------------
-    w2n ((4 >< 2) (n2w h') ≪ 2) = h'
-  
-  
-    This (^) obviously doesn't hold !(h': word5).
-    Because we are missing the constraint that the 2 LSB of h' MBZ.
-    Should this be part of a more elaborate definition of `wellformed_base32`?
-
-    Needed constraints:
-      LENGTH ns = 2 ==> ((1 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[2]
-      LENGTH ns = 4 ==> ((3 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[4]
-      LENGTH ns = 5 ==> ((0 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[1]
-      LENGTH ns = 7 ==> ((2 >< 0) $ concat $ MAP n2w ns) = 0b0w: bool[3]
-*)
+Triviality SHIFT_4_LSB_MBZ:
+ !(h: word5). (3 >< 0) h: bool[4] = 0w ==> (4 >< 4) h ≪ 4 = h
+Proof
+  BBLAST_TAC
 QED
 
 Theorem BASE32_ENC_DEC_LENGTH4:
-  !(ns: num list). LENGTH ns = 4 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+  !(ns: num list). LENGTH ns = 4 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
-  cheat
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'`
+  >> rw []
+  >> REWRITE_TAC [base32dec_def, b8_to_w8lst_def, b16_to_w8lst_def]
+  >> REWRITE_TAC [base32enc_def, b10_to_w5lst_def, b20_to_w5lst_def]
+  >> REWRITE_TAC [MAP, concat_word_list_def]
+  >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+  >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:5``)] w2n_n2w]
+  >> first_x_assum mp_tac
+  >> fs [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_4_LSB_MBZ]
+QED
+
+Triviality SHIFT_1_LSB_MBZ:
+ !(h: word5). (0 >< 0) h: bool[1] = 0w ==> (4 >< 1) h ≪ 1 = h
+Proof
+  BBLAST_TAC
 QED
 
 Theorem BASE32_ENC_DEC_LENGTH5:
-  !(ns: num list). LENGTH ns = 5 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+  !(ns: num list). LENGTH ns = 5 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
-  cheat
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t`
+  >> rw []
+  >> REWRITE_TAC [base32dec_def, b8_to_w8lst_def, b16_to_w8lst_def, b24_to_w8lst_def]
+  >> REWRITE_TAC [base32enc_def, b10_to_w5lst_def, b20_to_w5lst_def, b25_to_w5lst_def]
+  >> REWRITE_TAC [MAP, concat_word_list_def]
+  >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+  >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:5``)] w2n_n2w]
+  >> first_x_assum mp_tac
+  >> rw [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_1_LSB_MBZ]
+QED
+
+Triviality SHIFT_3_LSB_MBZ:
+ !(h: word5). (2 >< 0) h: bool[3] = 0w ==> (4 >< 3) h ≪ 3 = h
+Proof
+  BBLAST_TAC
 QED
 
 Theorem BASE32_ENC_DEC_LENGTH7:
-  !(ns: num list). LENGTH ns = 7 /\ wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+  !(ns: num list). LENGTH ns = 7 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
-  cheat
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t`
+  >> rw []
+  >> REWRITE_TAC [base32dec_def, b8_to_w8lst_def, b16_to_w8lst_def, b24_to_w8lst_def, b32_to_w8lst_def]
+  >> REWRITE_TAC [base32enc_def, b10_to_w5lst_def, b20_to_w5lst_def, b25_to_w5lst_def, b35_to_w5lst_def]
+  >> REWRITE_TAC [MAP, concat_word_list_def]
+  >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+  >> first_x_assum mp_tac
+  >> rw [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_3_LSB_MBZ]
 QED
 
 Theorem BASE32_ENC_DEC:
-  !(ns: num list). wellformed_base32 ns ==> base32enc (base32dec ns) = ns
+  !(ns: num list). wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
   gen_tac
   >> completeInduct_on `LENGTH ns` 
   >> Cases_on `v < 8` >- (
     (* Base cases *)
     Cases_on `v = 0` >- rw [base32dec_def, base32enc_def]
-    >> Cases_on `v = 1` >- rw [wellformed_base32_def]
+    >> Cases_on `v = 1` >- rw [wf_base32_def]
     >> Cases_on `v = 2` >- rw [BASE32_ENC_DEC_LENGTH2]
-    >> Cases_on `v = 3` >- rw [wellformed_base32_def]
+    >> Cases_on `v = 3` >- rw [wf_base32_def]
     >> Cases_on `v = 4` >- rw [BASE32_ENC_DEC_LENGTH4]
     >> Cases_on `v = 5` >- rw [BASE32_ENC_DEC_LENGTH5]
-    >> Cases_on `v = 6` >- rw [wellformed_base32_def]
+    >> Cases_on `v = 6` >- rw [wf_base32_def]
     >> Cases_on `v = 7` >- rw [BASE32_ENC_DEC_LENGTH7]
     >> rw []
   ) >> (
     (* Recursive case *)
+(*
+    0.  ∀m. m < v ⇒
+            ∀ns. m = LENGTH ns ⇒ wf_base32 ns ⇒ base32enc (base32dec ns) = ns
+    1.  ¬(v < 8)
+   ------------------------------------
+        ∀ns. v = LENGTH ns ⇒ wf_base32 ns ⇒ base32enc (base32dec ns) = ns
+*)
     cheat
   )
 QED
 
+
+
+(****************************************)
+(*               Base64                 *)
+(****************************************)
+
+(* Base64 Alphabet *)
+
+Definition ALPH_BASE64_DEF:
+  ALPH_BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+End
+
+Definition alph_base64_el_def:
+  alph_base64_el (n: num) = (EL n ALPH_BASE64): char
+End
+
+Definition alph_base64_index_def:
+  alph_base64_index (c: char) = (THE $ INDEX_OF c ALPH_BASE64): num
+End
+
+
+(* Base64 Padding and De-Padding *)
+
+(* TODO *)
 
 val _ = export_theory();
