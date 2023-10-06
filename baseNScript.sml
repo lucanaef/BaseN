@@ -801,6 +801,41 @@ EVAL ``base64dec $ base64depad "Zm9vYmFy" = [0b01100110w; 0b01101111w; 0b0110111
 
 (* Theorems *)
 
+(* Padding Theorems *)
+
 (* TODO *)
+
+(* En- and Decoding Theorems *)
+
+Theorem BASE64_DEC_ENC:
+  !(ws: word8 list). base64dec (base64enc ws) = ws
+Proof
+  (* TODO *)
+  cheat
+QED
+
+Theorem BASE64_DEC_ENC_ID:
+  base64dec o base64enc = I
+Proof
+  rw [FUN_EQ_THM, BASE64_DEC_ENC]
+QED
+
+
+Definition wf_base64_def:
+  wf_base64 (ns: num list) = T
+End
+
+Theorem BASE64_ENC_DEC:
+  !(ns: num list). wf_base64 ns ==> base64enc (base64dec ns) = ns
+Proof
+  (* TODO *)
+  cheat 
+QED
+
+Theorem BASE64_ENC_DEC_ID:
+  !ns. wf_base64 ns ==> (base64enc o base64dec) ns = I ns
+Proof
+  rw [FUN_EQ_THM, BASE64_ENC_DEC]
+QED
 
 val _ = export_theory();
