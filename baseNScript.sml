@@ -709,6 +709,39 @@ End
 
 (* Base64 Padding and De-Padding *)
 
+Definition base64pad_def:
+  base64pad ns = case ns of
+    (* Base cases *)
+    | ([]: num list) => ("": string)
+    | [n1; n2] => (MAP alph_base64_el ns) ++ "=="
+    | [n1; n2; n3] => (MAP alph_base64_el ns) ++ "="
+    (* Recursive case *)
+    | (n1::n2::n3::n4::nss: num list) 
+    => (MAP alph_base64_el [n1; n2; n3; n4]) ++ (base64pad nss)
+End
+
+
+Definition base64depad_def:
+  base64depad cs = case cs of
+    (* Base cases *)
+    | ([]: string) => ([]: num list)
+    | (c1::c2::"==") => MAP alph_base64_index [c1; c2]
+    | (c1::c2::c3::"=") => MAP alph_base64_index [c1; c2; c3]
+    (* Recursive case *)
+    | (c1::c2::c3::c4::css) 
+    => MAP alph_base64_index [c1; c2; c3; c4] ++ (base64depad css)
+End
+
+(* Base64 En- and Decoding *)
+
+(* TODO *)
+
+(* RFC 4648 Test Vectors *)
+
+(* TODO *)
+
+(* Theorems *)
+
 (* TODO *)
 
 val _ = export_theory();
