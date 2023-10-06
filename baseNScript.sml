@@ -731,19 +731,73 @@ Definition base64depad_def:
     => MAP alph_base64_index [c1; c2; c3; c4] ++ (base64depad css)
 End
 
-(* Base64 En- and Decoding *)
+(* Base64 Encoding *)
 
-(* TODO *)
+Definition b6_to_w6lst_def:
+  b6_to_w6lst (b: bool[6]) = [b]: word6 list
+End
+
+Definition b12_to_w6lst_def:
+  b12_to_w6lst (b: bool[12]) = ((11 >< 6) b)::(b6_to_w6lst $ (5 >< 0) b)
+End
+
+Definition b18_to_w6lst_def:
+  b18_to_w6lst (b: bool[18]) = ((17 >< 12) b)::(b12_to_w6lst $ (11 >< 0) b)
+End
+
+Definition b24_to_w6lst_def:
+  b24_to_w6lst (b: bool[24]) = ((23 >< 18) b)::(b18_to_w6lst $ (17 >< 0) b)
+End
+
+Definition base64enc_def:
+    (* Base cases *)
+    base64enc ([]: word8 list) = ([]: num list)
+ /\ base64enc [w1] = 
+      MAP w2n 
+    $ b12_to_w6lst 
+    $ w1 @@ (0b0w: bool[4])
+ /\ base64enc [w1; w2] =
+      MAP w2n 
+    $ b18_to_w6lst 
+    $ (concat_word_list [w2; w1]: bool[16]) @@ (0b0w: bool[2]) 
+    (* Recursive case *)
+ /\ base64enc (w1::w2::w3::w4::ws) = 
+      (MAP w2n 
+    $ b24_to_w6lst 
+    $ (concat_word_list [w4; w3; w2; w1]: bool[24])) ++ (base64enc ws)
+End
+
+(* Base64 Decoding *)
+
+Definition base64dec_def:
+    (* Base cases *)
+    base64dec ([]: num list) = ([]: word8 list)
+ /\ base64dec [n1; n2] = 
+      b8_to_w8lst
+    $ (11 >< 4)
+    $ (concat_word_list
+    $ (MAP n2w [n2; n1]: word6 list)): bool[12]
+ /\ base64dec [n1; n2; n3] =
+      b16_to_w8lst
+    $ (17 >< 2)
+    $ (concat_word_list
+    $ (MAP n2w [n3; n2; n1]: word6 list)): bool[18]
+    (* Recursive case *)
+ /\ base64dec (n1::n2::n3::n4::ns) =
+      (b24_to_w8lst
+    $ (concat_word_list
+    $ (MAP n2w [n4; n3; n2; n1]: word6 list)): bool[24]) ++ (base64dec ns)
+End
 
 (* RFC 4648 Test Vectors *)
 
-EVAL ``base64dec $ base32depad "" = []``
-EVAL ``base64dec $ base32depad "Zg==" = [0b01100110w]``
-EVAL ``base64dec $ base32depad "Zm8=" = [0b01100110w; 0b01101111w]``
-EVAL ``base64dec $ base32depad "Zm9v" = [0b01100110w; 0b01101111w; 0b01101111w]``
-EVAL ``base64dec $ base32depad "Zm9vYg==" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w]``
-EVAL ``base64dec $ base32depad "Zm9vYmE=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
-EVAL ``base64dec $ base32depad "Zm9vYmFy" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
+EVAL ``base64dec $ base64depad "" = []``
+EVAL ``base64dec $ base64depad "Zg==" = [0b01100110w]``
+EVAL ``base64dec $ base64depad "Zm8=" = [0b01100110w; 0b01101111w]``
+EVAL ``base64dec $ base64depad "Zm9v" = [0b01100110w; 0b01101111w; 0b01101111w]``
+EVAL ``base64dec $ base64depad "Zm9vYg==" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w]``
+EVAL ``base64dec $ base64depad "Zm9vYmE=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
+EVAL ``base64dec $ base64depad "Zm9vYmFy" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
 
 (* Theorems *)
 
