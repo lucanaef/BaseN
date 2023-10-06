@@ -720,7 +720,6 @@ Definition base64pad_def:
     => (MAP alph_base64_el [n1; n2; n3; n4]) ++ (base64pad nss)
 End
 
-
 Definition base64depad_def:
   base64depad cs = case cs of
     (* Base cases *)
@@ -738,7 +737,13 @@ End
 
 (* RFC 4648 Test Vectors *)
 
-(* TODO *)
+EVAL ``base64dec $ base32depad "" = []``
+EVAL ``base64dec $ base32depad "Zg==" = [0b01100110w]``
+EVAL ``base64dec $ base32depad "Zm8=" = [0b01100110w; 0b01101111w]``
+EVAL ``base64dec $ base32depad "Zm9v" = [0b01100110w; 0b01101111w; 0b01101111w]``
+EVAL ``base64dec $ base32depad "Zm9vYg==" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w]``
+EVAL ``base64dec $ base32depad "Zm9vYmE=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
+EVAL ``base64dec $ base32depad "Zm9vYmFy" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
 
 (* Theorems *)
 
