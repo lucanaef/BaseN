@@ -934,14 +934,91 @@ QED
 
 
 Definition wf_base64_def:
-  wf_base64 (ns: num list) = T
+  wf_base64 (ns: num list) = 
+    (* Length *)
+    ((LENGTH ns MOD 4 <> 1)
+    (* Domain *)
+ /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE64)
+    (* LSB Constraints *)
+ /\ (LENGTH ns = 2 ==> ((3 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[4]))
+ /\ (LENGTH ns = 3 ==> ((1 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[2])))
 End
+
+Triviality STRLEN_ALPH_BASE64:
+  STRLEN ALPH_BASE64 = 64
+Proof
+  rw [ALPH_BASE64_DEF]
+QED
+
+Triviality W6_SHIFT_4_LSB_MBZ:
+ !(h: word6). (3 >< 0) h: bool[4] = 0w ==> (5 >< 4) h ≪ 4 = h
+Proof 
+  BBLAST_TAC
+QED
+
+Theorem BASE64_ENC_DEC_LENGTH2:
+  !(ns: num list). LENGTH ns = 2 /\ wf_base64 ns ==> base64enc (base64dec ns) = ns
+Proof
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'`
+  >> rw []
+  >> REWRITE_TAC [base64dec_def, b16_to_w8lst_def, b8_to_w8lst_def]
+  >> REWRITE_TAC [base64enc_def, b18_to_w6lst_def, b12_to_w6lst_def, b6_to_w6lst_def]
+  >> REWRITE_TAC [MAP, concat_word_list_def]
+  >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+  >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:6``)] w2n_n2w]
+  >> first_x_assum mp_tac
+  >> fs [wf_base64_def, STRLEN_ALPH_BASE64, W6_SHIFT_4_LSB_MBZ]
+QED
+
+Triviality W6_SHIFT_2_LSB_MBZ:
+ !(h: word6). (1 >< 0) h: bool[2] = 0w ==> (5 >< 2) h ≪ 2 = h
+Proof 
+  BBLAST_TAC
+QED
+
+Theorem BASE64_ENC_DEC_LENGTH3:
+  !(ns: num list). LENGTH ns = 3 /\ wf_base64 ns ==> base64enc (base64dec ns) = ns
+Proof
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t`
+  >> rw []
+  >> REWRITE_TAC [base64dec_def, b16_to_w8lst_def, b8_to_w8lst_def]
+  >> REWRITE_TAC [base64enc_def, b18_to_w6lst_def, b12_to_w6lst_def, b6_to_w6lst_def]
+  >> REWRITE_TAC [MAP, concat_word_list_def]
+  >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+  >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:6``)] w2n_n2w]
+  >> first_x_assum mp_tac
+  >> fs [wf_base64_def, STRLEN_ALPH_BASE64, W6_SHIFT_2_LSB_MBZ]
+QED
 
 Theorem BASE64_ENC_DEC:
   !(ns: num list). wf_base64 ns ==> base64enc (base64dec ns) = ns
 Proof
-  (* TODO *)
-  cheat 
+  gen_tac
+  >> completeInduct_on `LENGTH ns` 
+  >> Cases_on `v < 4` >- (
+    (* Base cases *)
+    Cases_on `v = 0` >- rw [base64dec_def, base64enc_def]
+    >> Cases_on `v = 1` >- rw [wf_base64_def]
+    >> Cases_on `v = 2` >- rw [BASE64_ENC_DEC_LENGTH2]
+    >> Cases_on `v = 3` >- rw [BASE64_ENC_DEC_LENGTH3]
+    >> rw []
+  ) >> (
+    (* Recursive case *)
+    Cases_on `ns` >- rw [] 
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> rw [wf_base64_def]
+    >> rw [base64dec_def, b24_to_w8lst_def, b16_to_w8lst_def, b8_to_w8lst_def]
+    >> rw [base64enc_def, b24_to_w6lst_def]
+    (* TODO *)
+    >> cheat
+  )
 QED
 
 Theorem BASE64_ENC_DEC_ID:
