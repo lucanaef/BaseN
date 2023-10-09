@@ -995,6 +995,13 @@ Proof
   >> fs [wf_base64_def, STRLEN_ALPH_BASE64, W6_SHIFT_2_LSB_MBZ]
 QED
 
+Theorem WF_BASE64_REC:
+  !h1 h2 h3 h4 t. wf_base64 (h1::h2::h3::h4::t) ==> wf_base64 t
+Proof
+  (* TODO *)
+  cheat
+QED
+
 Theorem BASE64_ENC_DEC:
   !(ns: num list). wf_base64 ns ==> base64enc (base64dec ns) = ns
 Proof
@@ -1013,13 +1020,22 @@ Proof
     >> Cases_on `t` >- rw []
     >> Cases_on `t'` >- rw []
     >> Cases_on `t` >- rw []
-    >> rw [wf_base64_def]
-    >> rw [base64dec_def, b24_to_w8lst_def, b16_to_w8lst_def, b8_to_w8lst_def]
-    >> rw [base64enc_def, b24_to_w6lst_def]
-    (* TODO *)
-    >> cheat
+    >> rw []
+    >> REWRITE_TAC [base64dec_def, b24_to_w8lst_def, b16_to_w8lst_def, b8_to_w8lst_def]
+    >> REWRITE_TAC [MAP, concat_word_list_def]
+    >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+    >> rw [GSYM rich_listTheory.CONS_APPEND]
+    >> REWRITE_TAC [base64enc_def, b24_to_w6lst_def, b18_to_w6lst_def, b12_to_w6lst_def, b6_to_w6lst_def]
+    >> REWRITE_TAC [MAP, concat_word_list_def]
+    >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+    >> rw [wordsTheory.w2n_n2w]
+    >> fs [wf_base64_def, STRLEN_ALPH_BASE64]
+    >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_REC
+    >> fs []
   )
 QED
+
+ff "w2n" "n2w"
 
 Theorem BASE64_ENC_DEC_ID:
   !ns. wf_base64 ns ==> (base64enc o base64dec) ns = I ns
