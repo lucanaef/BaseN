@@ -862,17 +862,86 @@ EVAL ``base64pad $ base64enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w
 
 (* Padding Theorems *)
 
+Triviality ALL_DISTINCT_ALPH_BASE64: 
+  ALL_DISTINCT ALPH_BASE64
+Proof
+  rw [ALPH_BASE64_DEF]
+QED
+
+Triviality PAD_NOT_IN_ALPH_BASE64:
+  !(n: num). n < LENGTH ALPH_BASE64 ==> alph_base64_el n <> #"="
+Proof
+  completeInduct_on `n`
+  >> rw [alph_base64_el_def, ALPH_BASE64_DEF]
+  >> ntac 32 $ EVERY [Cases_on `n`, rw [], Cases_on `n'`, rw []]
+  >> fs []
+QED
+
+Theorem ALPH_BASE64_INDEX_EL:
+  !n. n < STRLEN ALPH_BASE64 ==> alph_base64_index (alph_base64_el n) = n
+Proof
+  rw [alph_base64_el_def, alph_base64_index_def]
+  >> ASSUME_TAC ALL_DISTINCT_ALPH_BASE64
+  >> rw [ALL_DISTINCT_INDEX_OF_EL]
+QED
+
 Definition wf_base64_numlst_def:
   wf_base64_numlst (ns: num list) = 
     ((LENGTH ns MOD 4 <> 1)
  /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE64))
 End
 
+Theorem BASE64_PAD_DEPAD_LENGTH0:
+  !ns. LENGTH ns = 0 /\ wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+Proof
+  rw []
+  >> rw [base64pad_def]
+  >> rw [base64depad_def]
+QED
+
+Theorem BASE64_PAD_DEPAD_LENGTH2:
+  !ns. LENGTH ns = 2 /\ wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+Proof
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` 
+  >> rw [base64pad_def]
+  >> rw [base64depad_def]
+  >> fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+QED
+
+Theorem BASE64_PAD_DEPAD_LENGTH3:
+  !ns. LENGTH ns = 3 /\ wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+Proof
+  Cases_on `ns` >- rw []
+  >> Cases_on `t` >- rw []
+  >> Cases_on `t'` >- rw []
+  >> Cases_on `t`
+  >> rw [base64pad_def]
+  >> rw [base64depad_def]
+  >- ( 
+    fs [wf_base64_numlst_def]
+    >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
+    >> METIS_TAC []
+  )
+  >> fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL] 
+QED
+
 Theorem BASE64_PAD_DEPAD:
   !ns. wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
 Proof
-  (* TODO *)
-  cheat
+  gen_tac
+  >> completeInduct_on `LENGTH ns`
+  >> Cases_on `v < 4` >- (
+    Cases_on `v = 0` >- rw [BASE64_PAD_DEPAD_LENGTH0] 
+    >> Cases_on `v = 1` >- rw [wf_base64_numlst_def] 
+    >> Cases_on `v = 2` >- rw [BASE64_PAD_DEPAD_LENGTH2] 
+    >> Cases_on `v = 3` >- rw [BASE64_PAD_DEPAD_LENGTH3] 
+    >> rw []
+  ) >> (
+    (* TODO *)
+    cheat
+  ) 
 QED
 
 Theorem BASE64_DEPAD_PAD:
