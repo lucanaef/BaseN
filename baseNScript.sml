@@ -940,8 +940,8 @@ Definition wf_base64_def:
     (* Domain *)
  /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE64)
     (* LSB Constraints *)
- /\ (LENGTH ns = 2 ==> ((3 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[4]))
- /\ (LENGTH ns = 3 ==> ((1 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[2])))
+ /\ (LENGTH ns MOD 4 = 2 ==> ((3 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[4]))
+ /\ (LENGTH ns MOD 4 = 3 ==> ((1 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[2])))
 End
 
 Triviality STRLEN_ALPH_BASE64:
@@ -998,8 +998,9 @@ QED
 Theorem WF_BASE64_REC:
   !h1 h2 h3 h4 t. wf_base64 (h1::h2::h3::h4::t) ==> wf_base64 t
 Proof
-  (* TODO *)
-  cheat
+  rw [wf_base64_def, SUC_ONE_ADD]
+  >> Cases_on `t` 
+  >> fs [LAST_DEF]
 QED
 
 Theorem BASE64_ENC_DEC:
@@ -1029,13 +1030,14 @@ Proof
     >> REWRITE_TAC [MAP, concat_word_list_def]
     >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
     >> rw [wordsTheory.w2n_n2w]
-    >> fs [wf_base64_def, STRLEN_ALPH_BASE64]
+    >- fs [wf_base64_def, STRLEN_ALPH_BASE64]
+    >- fs [wf_base64_def, STRLEN_ALPH_BASE64]
+    >- fs [wf_base64_def, STRLEN_ALPH_BASE64]
+    >- fs [wf_base64_def, STRLEN_ALPH_BASE64]
     >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_REC
     >> fs []
   )
 QED
-
-ff "w2n" "n2w"
 
 Theorem BASE64_ENC_DEC_ID:
   !ns. wf_base64 ns ==> (base64enc o base64dec) ns = I ns
