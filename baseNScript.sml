@@ -339,15 +339,68 @@ Proof
   >> rw [ALL_DISTINCT_INDEX_OF_EL]
 QED
 
+Definition wf_base32_clst_def:
+  wf_base32_clst (cs: char list) = 
+    ((LENGTH cs MOD 8 = 0)
+ /\ (LENGTH cs >= 8 ==> ~(MEM #"=" $ TAKE 8 cs)))
+End
 
-Theorem BASE32_DEPAD_PAD:
-  !s ns. ns = base32depad s ==> base32pad ns = s
+Theorem BASE32_DEPAD_PAD_REC_SPLIT:
+  !c1 c2 c3 c4 c5 c6 c7 c8 css.
+    wf_base32_clst (c1::c2::c3::c4::c5::c6::c7::c8::css) ==>
+    base32pad (base32depad (c1::c2::c3::c4::c5::c6::c7::c8::css))
+  = base32pad (base32depad (c1::c2::c3::c4::c5::c6::c7::c8::[])) ++ base32pad (base32depad css)
+Proof
+  cheat 
+QED
+
+Theorem BASE32_DEPAD_PAD_LENGTH8:
+  !cs. wf_base32_clst [c1; c2; c3; c4; c5; c6; c7; c8] ==> base32pad (base32depad [c1; c2; c3; c4; c5; c6; c7; c8]) = [c1; c2; c3; c4; c5; c6; c7; c8]
 Proof
   cheat
-  (* 
-     I'm not sure how I can prove the theorem for the different cases when they
-      all have the same length (i.e. not via completeInduct_on `LENGTH _`) 
-  *)
+QED
+
+Theorem BASE32_DEPAD_PAD:
+  !cs. wf_base32_clst cs ==> base32pad (base32depad cs) = cs
+Proof
+  gen_tac 
+  >> completeInduct_on `LENGTH cs`
+  (* Base cases *)
+  >> Cases_on `v = 0` >- (
+    ONCE_REWRITE_TAC [base32depad_def] >> rw []
+    >> ONCE_REWRITE_TAC [base32pad_def] >> rw []
+  ) >> Cases_on `v = 8` >- ( 
+    rw []
+    >> cheat
+  )
+  >> gen_tac
+  >> Cases_on `cs = c1::c2::c3::c4::c5::c6::c7::c8::css` >- (
+    >> ASM_REWRITE_TAC []
+    >> rw [BASE32_DEPAD_PAD_REC_SPLIT]
+    (* TODO: Rewriting below does not work. More work needed.*)
+    >> fs [BASE32_DEPAD_PAD_LENGTH8]
+    >> cheat
+  ) >> (
+    (* Cannot be the case *)
+    fs [wf_base32_clst_def]
+    (* TODO: How can I prove this? *)
+  )
+
+
+
+  (* Recursive case *) 
+  >> rw [wf_base32_clst_def]
+  >> Cases_on `cs` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> Cases_on `t` >- fs []
+  >> ONCE_REWRITE_TAC [base32depad_def]
+  >> ntac 8 $ fs []
+  >> ONCE_REWRITE_TAC [base32pad_def] 
 QED
 
 
@@ -432,17 +485,14 @@ Proof
   >> Cases_on `t` >- rw []
   >> Cases_on `t'` >- rw []
   >> Cases_on `t` >- rw []
-  (*
-    0.  ∀m. m < v ⇒
-          ∀ns. m = LENGTH ns ⇒ wf_base32_numlst ns ⇒
-              base32depad (base32pad ns) = ns
-    1.  v >= 8
-   ------------------------------------
-        ∀ns. v = LENGTH ns ⇒ wf_base32_numlst ns ⇒
-          base32depad (base32pad ns) = ns
-  *)
 
-  (* TODO: I'm not sure how this prove works technically. *)
+  (* Notes:
+  *     - quantHeuristicsTheory (e.g. LIST_LENGTH_1)
+  *     - ntac 7 (qmatch_goalsub_rename_tac `h::t` >> Cases_on `t`)
+  *     - (REWRITE_CONV [GSYM rich_listTheory.COUNT_LIST_COUNT,
+  *          GSYM pred_setTheory.IN_COUNT] THENC EVAL) ``LENGTH ls < 8n``;
+  *
+  *)
 QED
 
 (* En- and Decoding Theorems *)
@@ -761,10 +811,10 @@ Definition base64enc_def:
     $ b18_to_w6lst 
     $ (concat_word_list [w2; w1]: bool[16]) @@ (0b0w: bool[2]) 
     (* Recursive case *)
- /\ base64enc (w1::w2::w3::w4::ws) = 
+ /\ base64enc (w1::w2::w3::ws) = 
       (MAP w2n 
     $ b24_to_w6lst 
-    $ (concat_word_list [w4; w3; w2; w1]: bool[24])) ++ (base64enc ws)
+    $ (concat_word_list [w3; w2; w1]: bool[24])) ++ (base64enc ws)
 End
 
 (* Base64 Decoding *)
@@ -799,19 +849,81 @@ EVAL ``base64dec $ base64depad "Zm9vYg==" = [0b01100110w; 0b01101111w; 0b0110111
 EVAL ``base64dec $ base64depad "Zm9vYmE=" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w]``
 EVAL ``base64dec $ base64depad "Zm9vYmFy" = [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w]``
 
+EVAL ``base64pad $ base64enc [] = ""``
+EVAL ``base64pad $ base64enc [0b01100110w] = "Zg=="``
+EVAL ``base64pad $ base64enc [0b01100110w; 0b01101111w] = "Zm8="``
+EVAL ``base64pad $ base64enc [0b01100110w; 0b01101111w; 0b01101111w] = "Zm9v"``
+EVAL ``base64pad $ base64enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w] = "Zm9vYg=="``
+EVAL ``base64pad $ base64enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w] = "Zm9vYmE="``
+EVAL ``base64pad $ base64enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w; 0b01100001w; 0b01110010w] = "Zm9vYmFy"``
+
+
 (* Theorems *)
 
 (* Padding Theorems *)
 
-(* TODO *)
+Theorem BASE64_PAD_DEPAD:
+  !ns. wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+Proof
+  (* TODO *)
+  cheat
+QED
+
+Theorem BASE64_DEPAD_PAD:
+  !cs. wf_base64_clst cs ==> base64pad (base64depad cs) = cs
+Proof
+  (* TODO *)
+  cheat
+QED
 
 (* En- and Decoding Theorems *)
+
+Theorem BASE64_DEC_ENC_LENGTH1:
+  !(ws: word8 list). LENGTH ws = 1 ==> base64dec (base64enc ws) = ws
+Proof
+  (* Trivial cases *)
+  Cases_on `ws` >- rw []
+  (* Main case *)
+  >> rw [base64enc_def, b12_to_w6lst_def, b6_to_w6lst_def]
+  >> rw [base64dec_def, b8_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+QED
+
+Theorem BASE64_DEC_ENC_LENGTH2:
+  !(ws: word8 list). LENGTH ws = 2 ==> base64dec (base64enc ws) = ws
+Proof
+  (* Trivial cases *)
+  Cases_on `ws` >- rw []
+  >> Cases_on `t` >- rw []
+  (* Main case *)
+  >> rw [base64enc_def, b18_to_w6lst_def, b12_to_w6lst_def, b6_to_w6lst_def]
+  >> rw [base64dec_def, b16_to_w8lst_def, b8_to_w8lst_def]
+  >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+QED
 
 Theorem BASE64_DEC_ENC:
   !(ws: word8 list). base64dec (base64enc ws) = ws
 Proof
-  (* TODO *)
-  cheat
+  gen_tac
+  >> completeInduct_on `LENGTH ws`
+  >> Cases_on `v < 3` >- (
+    (* Base cases *)
+    Cases_on `v = 0` >- rw [base64enc_def, base64dec_def]
+    >> Cases_on `v = 1` >- rw [BASE64_DEC_ENC_LENGTH1]
+    >> Cases_on `v = 2` >- rw [BASE64_DEC_ENC_LENGTH2]
+    >> rw []
+  ) >> (
+    (* Trivial cases *) 
+    Cases_on `ws` >- rw [] 
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    (* Recursive case *)
+    >> rw [base64enc_def]
+    >> rw [b24_to_w6lst_def, b18_to_w6lst_def, b12_to_w6lst_def, b6_to_w6lst_def]
+    >> rw [base64dec_def]
+    >> rw [b24_to_w8lst_def, b16_to_w8lst_def, b8_to_w8lst_def]
+    >> ntac 3 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []  
+  )
 QED
 
 Theorem BASE64_DEC_ENC_ID:
