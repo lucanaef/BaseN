@@ -862,6 +862,12 @@ EVAL ``base64pad $ base64enc [0b01100110w; 0b01101111w; 0b01101111w; 0b01100010w
 
 (* Padding Theorems *)
 
+Definition wf_base64_numlst_def:
+  wf_base64_numlst (ns: num list) = 
+    ((LENGTH ns MOD 4 <> 1)
+ /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE64))
+End
+
 Theorem BASE64_PAD_DEPAD:
   !ns. wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
 Proof
