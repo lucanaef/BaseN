@@ -99,9 +99,7 @@ Proof
   >> Cases_on `t` 
   >- rw [wellformed_base16_def]  
   >> rw [wellformed_base16_def]
-  >> rw [base16enc_def, base16dec_def] (* TODO: Use `fs` instead to avoid case
-  split *)
-  >- (    
+  >> rw [base16enc_def, base16dec_def] >- (    
     Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
     >> rw []
     >> REWRITE_TAC [GSYM STRLEN_ALPH_BASE16]
@@ -868,6 +866,12 @@ Proof
   rw [ALPH_BASE64_DEF]
 QED
 
+Triviality STRLEN_ALPH_BASE64:
+  STRLEN ALPH_BASE64 = 64
+Proof
+  rw [ALPH_BASE64_DEF]
+QED
+
 Triviality PAD_NOT_IN_ALPH_BASE64:
   !(n: num). n < LENGTH ALPH_BASE64 ==> alph_base64_el n <> #"="
 Proof
@@ -927,6 +931,24 @@ Proof
   >> fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL] 
 QED
 
+Theorem WF_BASE64_NUMLST_REC:
+  !h1 h2 h3 h4 t. wf_base64_numlst (h1::h2::h3::h4::t) ==> wf_base64_numlst t
+Proof
+  rw [wf_base64_numlst_def, SUC_ONE_ADD]
+QED
+
+
+Triviality BASE64_PAD_EMPTY_STRING:
+  !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = []
+Proof
+  Induct_on `t` >- (
+    rw [base64pad_def]
+  ) >> (
+    (* TODO: How can i prove this? *) 
+    cheat
+  )
+QED
+
 Theorem BASE64_PAD_DEPAD:
   !ns. wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
 Proof
@@ -939,16 +961,95 @@ Proof
     >> Cases_on `v = 3` >- rw [BASE64_PAD_DEPAD_LENGTH3] 
     >> rw []
   ) >> (
-    (* TODO *)
-    cheat
-  ) 
+    Cases_on `ns` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> ONCE_REWRITE_TAC [base64pad_def] >> rw []
+    >> ONCE_REWRITE_TAC [base64depad_def] >> rw []
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
+      >> fs [wf_base64_numlst_def, STRLEN_ALPH_BASE64] 
+      >> METIS_TAC []
+    ) 
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
+      >> fs [wf_base64_numlst_def, STRLEN_ALPH_BASE64] 
+      >> METIS_TAC []
+    )
+    >> Cases_on `base64pad t'` >- (
+      rw []
+      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+      >> ONCE_REWRITE_TAC [base64depad_def]
+      >> rw []
+      >> first_x_assum mp_tac
+      >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_NUMLST_REC
+      >> rw [BASE64_PAD_EMPTY_STRING]
+    )
+    >> rw []
+    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+    >> first_x_assum (mp_tac o SYM)
+    >> rw []
+    >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_NUMLST_REC
+    >> rw []
+  )
+QED
+
+
+Definition wf_base64_clst_def:
+  wf_base64_clst (cs: char list) = 
+    ((LENGTH cs MOD 4 = 0)
+ /\ !(c: char). (c = #"=" \/ MEM c ALPH_BASE64))
+ (* TODO: Is this strong enough? *)
+End
+
+Theorem ALPH_BASE64_EL_INDEX:
+  !c. MEM c ALPH_BASE64 ==> alph_base64_el (alph_base64_index c) = c
+Proof
+  fs [ALPH_BASE64_DEF]
+  >> gen_tac
+  >> strip_tac
+  >> rw [alph_base64_index_def, alph_base64_el_def]
+  >> rw [ALPH_BASE64_DEF, INDEX_OF_def, INDEX_FIND_def]
 QED
 
 Theorem BASE64_DEPAD_PAD:
   !cs. wf_base64_clst cs ==> base64pad (base64depad cs) = cs
 Proof
-  (* TODO *)
-  cheat
+  gen_tac
+  >> completeInduct_on `LENGTH cs`
+  >> gen_tac
+  >> Cases_on `v = 0` >- (
+    ONCE_REWRITE_TAC [base64depad_def] >> rw [] >> rw [base64pad_def]
+  )
+  >> Cases_on `v = 4` >- (
+     Cases_on `IS_SUFFIX cs "=="` >- (
+        ONCE_REWRITE_TAC [base64depad_def] >> rw []
+        >> Cases_on `cs = [c1; c2; #"="; #"="]` >- (
+          rw []
+          >> ONCE_REWRITE_TAC [base64pad_def] 
+          >> rw []
+          >> (* TODO: Some theorem ALPH_BASE64_EL_INDEX *) ntac 2 cheat
+        ) >> (
+          Cases_on `cs` >- fs []
+          >> Cases_on `t` >- fs []
+          >> Cases_on `t'` >- fs []
+          >> Cases_on `t` >- fs []
+          >> Cases_on `t'` >- cheat (* TODO: Provable by contradiction in assums? *)
+        )
+     )
+     >> Cases_on `IS_SUFFIX cs "="` >- cheat
+     >> cheat
+  ) >> (
+    (* Recursive case *)
+    cheat
+  ) 
 QED
 
 (* En- and Decoding Theorems *)
@@ -1018,12 +1119,6 @@ Definition wf_base64_def:
  /\ (LENGTH ns MOD 4 = 2 ==> ((3 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[4]))
  /\ (LENGTH ns MOD 4 = 3 ==> ((1 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[2])))
 End
-
-Triviality STRLEN_ALPH_BASE64:
-  STRLEN ALPH_BASE64 = 64
-Proof
-  rw [ALPH_BASE64_DEF]
-QED
 
 Triviality W6_SHIFT_4_LSB_MBZ:
  !(h: word6). (3 >< 0) h: bool[4] = 0w ==> (5 >< 4) h ≪ 4 = h
