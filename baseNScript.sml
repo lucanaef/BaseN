@@ -343,14 +343,6 @@ Definition wf_base32_clst_def:
  /\ (LENGTH cs >= 8 ==> ~(MEM #"=" $ TAKE 8 cs)))
 End
 
-Theorem BASE32_DEPAD_PAD_REC_SPLIT:
-  !c1 c2 c3 c4 c5 c6 c7 c8 css.
-    wf_base32_clst (c1::c2::c3::c4::c5::c6::c7::c8::css) ==>
-    base32pad (base32depad (c1::c2::c3::c4::c5::c6::c7::c8::css))
-  = base32pad (base32depad (c1::c2::c3::c4::c5::c6::c7::c8::[])) ++ base32pad (base32depad css)
-Proof
-  cheat 
-QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH8:
   !cs. wf_base32_clst [c1; c2; c3; c4; c5; c6; c7; c8] ==> base32pad (base32depad [c1; c2; c3; c4; c5; c6; c7; c8]) = [c1; c2; c3; c4; c5; c6; c7; c8]
@@ -594,12 +586,12 @@ Definition wf_base32_def:
     (* Length *)
     ((LENGTH ns MOD 8 <> 1) /\ (LENGTH ns MOD 8 <> 3) /\ (LENGTH ns MOD 8 <> 6)
     (* Domain *)
- /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32)
+ /\ (!(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32))
     (* LSB Constraints *)
- /\ (LENGTH ns = 2 ==> ((1 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[2]))
- /\ (LENGTH ns = 4 ==> ((3 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[4]))
- /\ (LENGTH ns = 5 ==> ((0 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[1]))
- /\ (LENGTH ns = 7 ==> ((2 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[3])))
+ /\ (LENGTH ns MOD 8 = 2 ==> ((1 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[2]))
+ /\ (LENGTH ns MOD 8 = 4 ==> ((3 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[4]))
+ /\ (LENGTH ns MOD 8 = 5 ==> ((0 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[1]))
+ /\ (LENGTH ns MOD 8 = 7 ==> ((2 >< 0) $ (n2w $ LAST ns): word5) = (0b0w: bool[3])))
 End
 
 Triviality STRLEN_ALPH_BASE32:
@@ -705,6 +697,16 @@ Proof
   >> rw [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_3_LSB_MBZ]
 QED
 
+Theorem WF_BASE32_REC:
+  !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32 (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32 t
+Proof
+  rw [wf_base32_def, SUC_ONE_ADD]
+  >> Cases_on `t` 
+  >> fs [LAST_DEF]
+  (* TODO: I can't find the reason why this doesn't work... *)
+  >> cheat
+QED
+
 Theorem BASE32_ENC_DEC:
   !(ns: num list). wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
@@ -723,14 +725,32 @@ Proof
     >> rw []
   ) >> (
     (* Recursive case *)
-(*
-    0.  ∀m. m < v ⇒
-            ∀ns. m = LENGTH ns ⇒ wf_base32 ns ⇒ base32enc (base32dec ns) = ns
-    1.  ¬(v < 8)
-   ------------------------------------
-        ∀ns. v = LENGTH ns ⇒ wf_base32 ns ⇒ base32enc (base32dec ns) = ns
-*)
-    cheat
+    Cases_on `ns` >- rw [] 
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw [] 
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> REWRITE_TAC [base32dec_def, b40_to_w8lst_def, b32_to_w8lst_def, b24_to_w8lst_def, b16_to_w8lst_def, b8_to_w8lst_def]
+    >> REWRITE_TAC [MAP, concat_word_list_def]
+    >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+    >> rw [GSYM rich_listTheory.CONS_APPEND]
+    >> REWRITE_TAC [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
+    >> REWRITE_TAC [MAP, concat_word_list_def]
+    >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
+    >> rw [wordsTheory.w2n_n2w]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
+    >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `h'⁴'`, `h'⁵'`, `h'⁶'`, `h'⁷'`, `t'`] MP_TAC WF_BASE32_REC
+    >> fs []
   )
 QED
 
@@ -939,14 +959,15 @@ QED
 
 
 Triviality BASE64_PAD_EMPTY_STRING:
-  !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = []
+  (* !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = [] *)
+  !t. base64pad t = "" ⇒ t = []
 Proof
-  Induct_on `t` >- (
-    rw [base64pad_def]
-  ) >> (
-    (* TODO: How can i prove this? *) 
-    cheat
-  )
+  (* TODO: How can I prove this? *)
+  SPOSE_NOT_THEN STRIP_ASSUME_TAC
+  >> last_x_assum mp_tac
+  >> first_x_assum mp_tac
+  >> ntac 2 ONCE_REWRITE_TAC [base64pad_def]
+  >> cheat 
 QED
 
 Theorem BASE64_PAD_DEPAD:
@@ -1005,8 +1026,8 @@ QED
 Definition wf_base64_clst_def:
   wf_base64_clst (cs: char list) = 
     ((LENGTH cs MOD 4 = 0)
- /\ !(c: char). (c = #"=" \/ MEM c ALPH_BASE64))
- (* TODO: Is this strong enough? *)
+ /\ !(c: char). (c = #"=" \/ MEM c ALPH_BASE64)
+ /\ (LENGTH (SUFFIX (λc. c = #"=") cs) <= 2))
 End
 
 Theorem ALPH_BASE64_EL_INDEX:
@@ -1029,23 +1050,18 @@ Proof
     ONCE_REWRITE_TAC [base64depad_def] >> rw [] >> rw [base64pad_def]
   )
   >> Cases_on `v = 4` >- (
-     Cases_on `IS_SUFFIX cs "=="` >- (
-        ONCE_REWRITE_TAC [base64depad_def] >> rw []
-        >> Cases_on `cs = [c1; c2; #"="; #"="]` >- (
-          rw []
-          >> ONCE_REWRITE_TAC [base64pad_def] 
-          >> rw []
-          >> (* TODO: Some theorem ALPH_BASE64_EL_INDEX *) ntac 2 cheat
-        ) >> (
-          Cases_on `cs` >- fs []
-          >> Cases_on `t` >- fs []
-          >> Cases_on `t'` >- fs []
-          >> Cases_on `t` >- fs []
-          >> Cases_on `t'` >- cheat (* TODO: Provable by contradiction in assums? *)
-        )
-     )
-     >> Cases_on `IS_SUFFIX cs "="` >- cheat
-     >> cheat
+    gvs [wf_base64_clst_def]
+    >> Cases_on `cs` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- (
+      rw [base64depad_def]
+      >> rw [base64pad_def]
+      >> rw [ALPH_BASE64_EL_INDEX]
+      (* TODO: I need `h <> #"="` which is derivable here. *)
+    ) >- rw []
+    >> cheat 
   ) >> (
     (* Recursive case *)
     cheat
