@@ -694,11 +694,12 @@ QED
 Theorem WF_BASE32_REC:
   !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32 (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32 t
 Proof
-  rw [wf_base32_def, SUC_ONE_ADD]
-  >> Cases_on `t` 
-  >> fs [LAST_DEF]
-  (* TODO: I can't find the reason why this doesn't work... *)
-  >> cheat
+  gs [wf_base32_def, SUC_ONE_ADD] 
+  >> (
+    Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> rfs [LAST_DEF]
+  )
 QED
 
 Theorem BASE32_ENC_DEC:
@@ -953,15 +954,13 @@ QED
 
 
 Triviality BASE64_PAD_EMPTY_STRING:
-  (* !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = [] *)
-  !t. base64pad t = "" ⇒ t = []
+  !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = []
 Proof
-  (* TODO: How can I prove this? *)
   SPOSE_NOT_THEN STRIP_ASSUME_TAC
-  >> last_x_assum mp_tac
-  >> first_x_assum mp_tac
-  >> ntac 2 ONCE_REWRITE_TAC [base64pad_def]
-  >> cheat 
+  >> qmatch_asmsub_rename_tac `base64pad t`
+  >> Cases_on `t`
+  >> fs [Once base64pad_def, wf_base64_numlst_def]
+  >> fs [AllCaseEqs()]
 QED
 
 Theorem BASE64_PAD_DEPAD:
@@ -1053,6 +1052,8 @@ Proof
       rw [base64depad_def]
       >> rw [base64pad_def]
       >> rw [ALPH_BASE64_EL_INDEX]
+      >> fs [rich_listTheory.SUFFIX_DEF]
+      >> fs [COND]
       (* TODO: I need `h <> #"="` which is derivable here. *)
     ) >- rw []
     >> cheat 
@@ -1061,6 +1062,8 @@ Proof
     cheat
   ) 
 QED
+
+f "COND_"
 
 (* En- and Decoding Theorems *)
 
