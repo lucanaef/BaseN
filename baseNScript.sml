@@ -344,12 +344,6 @@ Definition wf_base32_clst_def:
 End
 
 
-Theorem BASE32_DEPAD_PAD_LENGTH8:
-  !cs. wf_base32_clst [c1; c2; c3; c4; c5; c6; c7; c8] ==> base32pad (base32depad [c1; c2; c3; c4; c5; c6; c7; c8]) = [c1; c2; c3; c4; c5; c6; c7; c8]
-Proof
-  cheat
-QED
-
 Theorem BASE32_DEPAD_PAD:
   !cs. wf_base32_clst cs ==> base32pad (base32depad cs) = cs
 Proof
