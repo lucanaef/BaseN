@@ -1064,43 +1064,52 @@ Proof
       (* Case: [h; h'; "="; "="] *)
       >- ( 
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def] 
+        >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def]
+        >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; "="] *)
       >- rw [base64pad_def]
       >- ( 
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def]
+        >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def]
+        >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
         >> gvs [ALPH_BASE64_EL_INDEX]
+        >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; h'³'] *)
       >- rw [base64pad_def]
       >- ( 
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def]
+        >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def]
+        >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def]
+        >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
         qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'³'` MP_TAC
-        >> gvs [ALPH_BASE64_EL_INDEX]
+        >> fs [rich_listTheory.LASTN_def]
+        >> rw [ALPH_BASE64_EL_INDEX]
       )
     ) >- rw [] 
   ) >> (
@@ -1113,26 +1122,8 @@ Proof
     >> ntac 2 strip_tac
     >> Cases_on `t'` 
     >- gvs []
-    >> rw [Once base64depad_def]
-    >> rw [Once base64pad_def]
-    >- (
-      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
-      >> gvs [ALPH_BASE64_EL_INDEX]
-    )
-    >- (
-      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
-      >> gvs [ALPH_BASE64_EL_INDEX]
-    )
-    >- (
-      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
-      >> gvs [ALPH_BASE64_EL_INDEX]
-    )
-    >- (
-      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'''` MP_TAC
-      >> gvs [ALPH_BASE64_EL_INDEX]
-    )
-    >> gvs []
-    >> 
+
+    (* TODO: Continure here *)
   )
 QED
 
