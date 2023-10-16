@@ -1015,29 +1015,23 @@ Definition wf_base64_clst_def:
     ((LENGTH cs MOD 4 = 0)
  /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE64))
  /\ (~(MEM #"=" $ TAKE (LENGTH cs - 4) cs))
- /\ ((* Case [h1; h2; "="; "="] *)
-     (~(MEM #"=" $ TAKE 2 (LASTN 4 cs)) /\ EL 2 (LASTN 4 cs) = #"=" /\ EL 3 (LASTN 4 cs) = #"=")
+ /\ (LENGTH cs >= 4 ==> 
+      (* Case [h1; h2; "="; "="] *)
+     ((~(MEM #"=" $ TAKE 2 (LASTN 4 cs)) /\ EL 2 (LASTN 4 cs) = #"=" /\ EL 3 (LASTN 4 cs) = #"=")
      (* Case [h1; h2; h3; "="] *)
   \/ (~(MEM #"=" $ TAKE 3 (LASTN 4 cs)) /\ EL 3 (LASTN 4 cs) = #"=")
      (* Case [h1; h2; h3; h4] *)
-  \/ (~(MEM #"=" $ (LASTN 4 cs)))))
+  \/ (~(MEM #"=" $ LASTN 4 cs)))))
 End
 
 Theorem WF_BASE64_CLST_REC:
   !h1 h2 h3 h4 t. wf_base64_clst (h1::h2::h3::h4::t) ==> wf_base64_clst t
 Proof
   ntac 5 gen_tac
-  >> Cases_on `LENGTH t >= 4` >- (
-    gvs [wf_base64_clst_def]
-    >- rw []
-    >- fs [SUC_ONE_ADD]
-    >- fs [SUC_ONE_ADD]
-    >> cheat
-  ) >> (
-    cheat
-  )
+  >> Cases_on `LENGTH t < 4`
+  >> rw [wf_base64_clst_def] 
+  >> gvs [SUC_ONE_ADD, rich_listTheory.LASTN_DROP_UNCOND]
 QED
-
 
 Theorem ALPH_BASE64_EL_INDEX:
   !c. MEM c ALPH_BASE64 ==> alph_base64_el (alph_base64_index c) = c
