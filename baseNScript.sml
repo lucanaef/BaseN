@@ -913,9 +913,7 @@ End
 Theorem BASE64_PAD_DEPAD_LENGTH0:
   !ns. LENGTH ns = 0 /\ wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
 Proof
-  rw []
-  >> rw [base64pad_def]
-  >> rw [base64depad_def]
+  rw [Once base64pad_def, Once base64depad_def]
 QED
 
 Theorem BASE64_PAD_DEPAD_LENGTH2:
@@ -924,8 +922,7 @@ Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
   >> Cases_on `t'` 
-  >> rw [base64pad_def]
-  >> rw [base64depad_def]
+  >> rw [Once base64pad_def, Once base64depad_def]
   >> fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
 QED
 
@@ -936,8 +933,7 @@ Proof
   >> Cases_on `t` >- rw []
   >> Cases_on `t'` >- rw []
   >> Cases_on `t`
-  >> rw [base64pad_def]
-  >> rw [base64depad_def]
+  >> rw [Once base64pad_def, Once base64depad_def]
   >- ( 
     fs [wf_base64_numlst_def]
     >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
@@ -951,7 +947,6 @@ Theorem WF_BASE64_NUMLST_REC:
 Proof
   rw [wf_base64_numlst_def, SUC_ONE_ADD]
 QED
-
 
 Triviality BASE64_PAD_EMPTY_STRING:
   !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = []
@@ -1015,13 +1010,34 @@ Proof
   )
 QED
 
-
 Definition wf_base64_clst_def:
   wf_base64_clst (cs: char list) = 
     ((LENGTH cs MOD 4 = 0)
- /\ !(c: char). (c = #"=" \/ MEM c ALPH_BASE64)
- /\ (LENGTH (SUFFIX (λc. c = #"=") cs) <= 2))
+ /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE64))
+ /\ (~(MEM #"=" $ TAKE (LENGTH cs - 4) cs))
+ /\ ((* Case [h1; h2; "="; "="] *)
+     (~(MEM #"=" $ TAKE 2 (LASTN 4 cs)) /\ EL 2 (LASTN 4 cs) = #"=" /\ EL 3 (LASTN 4 cs) = #"=")
+     (* Case [h1; h2; h3; "="] *)
+  \/ (~(MEM #"=" $ TAKE 3 (LASTN 4 cs)) /\ EL 3 (LASTN 4 cs) = #"=")
+     (* Case [h1; h2; h3; h4] *)
+  \/ (~(MEM #"=" $ (LASTN 4 cs)))))
 End
+
+Theorem WF_BASE64_CLST_REC:
+  !h1 h2 h3 h4 t. wf_base64_clst (h1::h2::h3::h4::t) ==> wf_base64_clst t
+Proof
+  ntac 5 gen_tac
+  >> Cases_on `LENGTH t >= 4` >- (
+    gvs [wf_base64_clst_def]
+    >- rw []
+    >- fs [SUC_ONE_ADD]
+    >- fs [SUC_ONE_ADD]
+    >> cheat
+  ) >> (
+    cheat
+  )
+QED
+
 
 Theorem ALPH_BASE64_EL_INDEX:
   !c. MEM c ALPH_BASE64 ==> alph_base64_el (alph_base64_index c) = c
@@ -1050,20 +1066,81 @@ Proof
     >> Cases_on `t` >- rw []
     >> Cases_on `t'` >- (
       rw [base64depad_def]
-      >> rw [base64pad_def]
-      >> rw [ALPH_BASE64_EL_INDEX]
-      >> fs [rich_listTheory.SUFFIX_DEF]
-      >> fs [COND]
-      (* TODO: I need `h <> #"="` which is derivable here. *)
-    ) >- rw []
-    >> cheat 
+      >- rw [base64pad_def]
+      (* Case: [h; h'; "="; "="] *)
+      >- ( 
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      ) 
+      >- (
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      )
+      (* Case: [h; h'; h''; "="] *)
+      >- rw [base64pad_def]
+      >- ( 
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      ) 
+      >- (
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      )
+      >- (
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      )
+      (* Case: [h; h'; h''; h'³'] *)
+      >- rw [base64pad_def]
+      >- ( 
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      ) 
+      >- (
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      )
+      >- (
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      )
+      >- (
+        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'³'` MP_TAC
+        >> gvs [ALPH_BASE64_EL_INDEX]
+      )
+    ) >- rw [] 
   ) >> (
     (* Recursive case *)
-    cheat
-  ) 
+    gvs [wf_base64_clst_def]
+    >> Cases_on `cs` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> ntac 2 strip_tac
+    >> Cases_on `t'` 
+    >- gvs []
+    >> rw [Once base64depad_def]
+    >> rw [Once base64pad_def]
+    >- (
+      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+      >> gvs [ALPH_BASE64_EL_INDEX]
+    )
+    >- (
+      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+      >> gvs [ALPH_BASE64_EL_INDEX]
+    )
+    >- (
+      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+      >> gvs [ALPH_BASE64_EL_INDEX]
+    )
+    >- (
+      qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'''` MP_TAC
+      >> gvs [ALPH_BASE64_EL_INDEX]
+    )
+    >> gvs []
+    >> 
+  )
 QED
-
-f "COND_"
 
 (* En- and Decoding Theorems *)
 
