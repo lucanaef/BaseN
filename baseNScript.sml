@@ -1016,7 +1016,7 @@ Definition wf_base64_clst_def:
  /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE64))
  /\ (~(MEM #"=" $ TAKE (LENGTH cs - 4) cs))
  /\ (LENGTH cs >= 4 ==> 
-      (* Case [h1; h2; "="; "="] *)
+     (* Case [h1; h2; "="; "="] *)
      ((~(MEM #"=" $ TAKE 2 (LASTN 4 cs)) /\ EL 2 (LASTN 4 cs) = #"=" /\ EL 3 (LASTN 4 cs) = #"=")
      (* Case [h1; h2; h3; "="] *)
   \/ (~(MEM #"=" $ TAKE 3 (LASTN 4 cs)) /\ EL 3 (LASTN 4 cs) = #"=")
@@ -1043,6 +1043,63 @@ Proof
   >> rw [ALPH_BASE64_DEF, INDEX_OF_def, INDEX_FIND_def]
 QED
 
+Theorem BASE64_DEPAD_PAD_REC:
+  ((!m. m < v ==> !cs. m = STRLEN cs ==> 
+    wf_base64_clst cs ==> base64pad (base64depad cs) = cs)
+  /\ v <> 0 /\ v <> 4)
+  ==>
+  (v = STRLEN cs ==> wf_base64_clst cs ==> base64pad (base64depad cs) = cs)
+Proof
+  rpt strip_tac 
+  >> `LENGTH cs >= 8` by (
+    fs [wf_base64_clst_def]
+    >> ntac 3 $ WEAKEN_TAC (fn f => true)
+    >> first_x_assum mp_tac
+    >> WEAKEN_TAC (fn f => true)
+    >> ntac 2 $ first_x_assum mp_tac
+    >> WEAKEN_TAC (fn f => true)
+    >> rw []
+    >> Cases_on `cs` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >> fs []
+  )
+  >> Cases_on `cs` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> rw [Once base64depad_def]
+  >> rw [Once base64pad_def] 
+  >- (
+    fs [wf_base64_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+    >> fs [ALPH_BASE64_EL_INDEX]
+  )
+  >- (
+    fs [wf_base64_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+    >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >- (
+    fs [wf_base64_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+    >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >- (
+    fs [wf_base64_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >> first_x_assum $ match_mp_tac o MP_CANON
+  >> csimp []
+  >> drule_then irule WF_BASE64_CLST_REC
+QED
+
 Theorem BASE64_DEPAD_PAD:
   !cs. wf_base64_clst cs ==> base64pad (base64depad cs) = cs
 Proof
@@ -1052,78 +1109,75 @@ Proof
   >> Cases_on `v = 0` >- (
     ONCE_REWRITE_TAC [base64depad_def] >> rw [] >> rw [base64pad_def]
   )
-  >> Cases_on `v = 4` >- (
-    gvs [wf_base64_clst_def]
-    >> Cases_on `cs` >- rw []
+  >> Cases_on `v = 4` >- ( 
+    Cases_on `cs` >- rw []
     >> Cases_on `t` >- rw []
     >> Cases_on `t'` >- rw []
     >> Cases_on `t` >- rw []
     >> Cases_on `t'` >- (
       rw [base64depad_def]
-      >- rw [base64pad_def]
+      >> rw [base64pad_def]
       (* Case: [h; h'; "="; "="] *)
-      >- ( 
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+      >- (
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [rich_listTheory.LASTN_def] 
         >> rw [ALPH_BASE64_EL_INDEX]
-      ) 
+      )
       >- (
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
-        >> fs [rich_listTheory.LASTN_def]
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        >> fs [rich_listTheory.LASTN_def] 
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; "="] *)
-      >- rw [base64pad_def]
-      >- ( 
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+      >- (
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [rich_listTheory.LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [rich_listTheory.LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+        fs [wf_base64_clst_def] 
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
         >> gvs [ALPH_BASE64_EL_INDEX]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; h'³'] *)
-      >- rw [base64pad_def]
-      >- ( 
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+      >- (
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [rich_listTheory.LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [rich_listTheory.LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
         >> fs [rich_listTheory.LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
-        qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'³'` MP_TAC
+        fs [wf_base64_clst_def]
+        >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'³'` MP_TAC
         >> fs [rich_listTheory.LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
-      )
+      ) 
     ) >- rw [] 
   ) >> (
     (* Recursive case *)
-    gvs [wf_base64_clst_def]
-    >> Cases_on `cs` >- rw []
-    >> Cases_on `t` >- rw []
-    >> Cases_on `t'` >- rw []
-    >> Cases_on `t` >- rw []
-    >> ntac 2 strip_tac
-    >> Cases_on `t'` 
-    >- gvs []
-
-    (* TODO: Continure here *)
+    ASSUME_TAC BASE64_DEPAD_PAD_REC >> simp [] 
   )
 QED
 
