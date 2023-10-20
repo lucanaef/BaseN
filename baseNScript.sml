@@ -381,7 +381,6 @@ Proof
   >> gvs [SUC_ONE_ADD, rich_listTheory.LASTN_DROP_UNCOND]
 QED
 
-
 Theorem BASE32_DEPAD_PAD_REC:
   ((!m. m < v ==> !cs. m = STRLEN cs ==> 
     wf_base32_clst cs ==> base32pad (base32depad cs) = cs)
@@ -389,7 +388,86 @@ Theorem BASE32_DEPAD_PAD_REC:
   ==>
   (v = STRLEN cs ==> wf_base32_clst cs ==> base32pad (base32depad cs) = cs)
 Proof
-  cheat
+  rpt strip_tac
+  >> `LENGTH cs >= 16` by (
+    fs [wf_base32_clst_def]
+    >> ntac 3 $ WEAKEN_TAC (fn f => true)
+    >> first_x_assum mp_tac
+    >> WEAKEN_TAC (fn f => true)
+    >> ntac 2 $ first_x_assum mp_tac
+    >> WEAKEN_TAC (fn f => true)
+    >> rw []
+    >> Cases_on `cs` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >- fs []
+    >> Cases_on `t'` >- fs []
+    >> Cases_on `t` >> fs []
+  )
+  >> Cases_on `cs` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> Cases_on `t` >- fs []
+  >> Cases_on `t'` >- fs []
+  >> rw [Once base32depad_def]
+  >> rw [Once base32pad_def]
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `!c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> fs [ALPH_BASE32_EL_INDEX]
+  )
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  ) 
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
+    >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
+    >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
+    >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >- (
+    fs [wf_base32_clst_def]
+    >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'7'` MP_TAC
+    >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, rich_listTheory.LASTN, MEM]
+  )
+  >> first_x_assum $ match_mp_tac o MP_CANON
+  >> csimp []
+  >> drule_then irule WF_BASE32_CLST_REC
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH2:
