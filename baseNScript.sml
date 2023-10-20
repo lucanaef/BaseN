@@ -329,6 +329,16 @@ Proof
   >> fs []
 QED
 
+Theorem ALPH_BASE32_EL_INDEX:
+  !c. MEM c ALPH_BASE32 ==> alph_base32_el (alph_base32_index c) = c
+Proof
+  fs [ALPH_BASE32_DEF]
+  >> gen_tac
+  >> strip_tac
+  >> rw [alph_base32_index_def, alph_base32_el_def]
+  >> rw [ALPH_BASE32_DEF, INDEX_OF_def, INDEX_FIND_def]
+QED
+
 Theorem ALPH_BASE32_INDEX_EL:
   !n. n < STRLEN ALPH_BASE32 ==> alph_base32_index (alph_base32_el n) = n
 Proof
@@ -371,46 +381,10 @@ Proof
   >> gvs [SUC_ONE_ADD, rich_listTheory.LASTN_DROP_UNCOND]
 QED
 
-
 Theorem BASE32_DEPAD_PAD:
   !cs. wf_base32_clst cs ==> base32pad (base32depad cs) = cs
 Proof
-  gen_tac 
-  >> completeInduct_on `LENGTH cs`
-  (* Base cases *)
-  >> Cases_on `v = 0` >- (
-    ONCE_REWRITE_TAC [base32depad_def] >> rw []
-    >> ONCE_REWRITE_TAC [base32pad_def] >> rw []
-  ) >> Cases_on `v = 8` >- ( 
-    rw []
-    >> cheat
-  )
-  >> gen_tac
-  >> Cases_on `cs = c1::c2::c3::c4::c5::c6::c7::c8::css` >- (
-    >> ASM_REWRITE_TAC []
-    >> rw [BASE32_DEPAD_PAD_REC_SPLIT]
-    (* TODO: Rewriting below does not work. More work needed.*)
-    >> fs [BASE32_DEPAD_PAD_LENGTH8]
-    >> cheat
-  ) >> (
-    (* Cannot be the case *)
-    fs [wf_base32_clst_def]
-    (* TODO: How can I prove this? *)
-  )
-
-  (* Recursive case *) 
-  >> rw [wf_base32_clst_def]
-  >> Cases_on `cs` >- fs []
-  >> Cases_on `t` >- fs []
-  >> Cases_on `t'` >- fs []
-  >> Cases_on `t` >- fs []
-  >> Cases_on `t'` >- fs []
-  >> Cases_on `t` >- fs []
-  >> Cases_on `t'` >- fs []
-  >> Cases_on `t` >- fs []
-  >> ONCE_REWRITE_TAC [base32depad_def]
-  >> ntac 8 $ fs []
-  >> ONCE_REWRITE_TAC [base32pad_def] 
+  cheat 
 QED
 
 
