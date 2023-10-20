@@ -314,6 +314,12 @@ Proof
   rw [ALPH_BASE32_DEF]
 QED
 
+Triviality STRLEN_ALPH_BASE32:
+  STRLEN ALPH_BASE32 = 32
+Proof
+  rw [ALPH_BASE32_DEF]
+QED
+
 Triviality PAD_NOT_IN_ALPH_BASE32:
   !(n: num). n < LENGTH ALPH_BASE32 ==> alph_base32_el n <> #"="
 Proof
@@ -334,8 +340,36 @@ QED
 Definition wf_base32_clst_def:
   wf_base32_clst (cs: char list) = 
     ((LENGTH cs MOD 8 = 0)
- /\ (LENGTH cs >= 8 ==> ~(MEM #"=" $ TAKE 8 cs)))
+ /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE32))
+ /\ (~(MEM #"=" $ TAKE (LENGTH cs - 8) cs))
+ /\ (LENGTH cs >= 8 ==> 
+       (* Case (c1::c2::"======") *)
+     ((~(MEM #"=" $ TAKE 2 (LASTN 8 cs)) 
+       /\ EL 2 (LASTN 8 cs) = #"=" /\ EL 3 (LASTN 8 cs) = #"=" 
+       /\ EL 4 (LASTN 8 cs) = #"=" /\ EL 5 (LASTN 8 cs) = #"=" 
+       /\ EL 6 (LASTN 8 cs) = #"=" /\ EL 7 (LASTN 8 cs) = #"=")
+      (* Case (c1::c2::c3::c4::"====") *)
+   \/ (~(MEM #"=" $ TAKE 4 (LASTN 8 cs)) 
+       /\ EL 4 (LASTN 8 cs) = #"=" /\ EL 5 (LASTN 8 cs) = #"=" 
+       /\ EL 6 (LASTN 8 cs) = #"=" /\ EL 7 (LASTN 8 cs) = #"=")
+      (* Case (c1::c2::c3::c4::c5::"===") *)
+   \/ (~(MEM #"=" $ TAKE 5 (LASTN 8 cs)) 
+       /\ EL 5 (LASTN 8 cs) = #"=" /\ EL 6 (LASTN 8 cs) = #"=" 
+       /\ EL 7 (LASTN 8 cs) = #"=")
+      (* Case (c1::c2::c3::c4::c5::c6::c7::"=") *)
+   \/ (~(MEM #"=" $ TAKE 7 (LASTN 8 cs)) /\ EL 7 (LASTN 8 cs) = #"=")
+      (* Case (c1::c2::c3::c4::c5::c6::c7::c8)*)
+   \/ (~(MEM #"=" $ LASTN 8 cs)))))
 End
+
+Theorem WF_BASE32_CLST_REC:
+  !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32_clst (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32_clst t
+Proof
+  ntac 9 gen_tac
+  >> Cases_on `LENGTH t < 8`
+  >> rw [wf_base32_clst_def] 
+  >> gvs [SUC_ONE_ADD, rich_listTheory.LASTN_DROP_UNCOND]
+QED
 
 
 Theorem BASE32_DEPAD_PAD:
@@ -481,25 +515,70 @@ Proof
     >> Cases_on `t'` >- rw []
     >> Cases_on `t` >- rw []
     >> Cases_on `t'` >- rw []
-    >> Cases_on `t` >- rw [] 
+    >> Cases_on `t` >- rw []
     >> rw [Once base32pad_def]
     >> rw [Once base32depad_def]
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> PROVE_TAC []
+    )
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> PROVE_TAC []
+    )
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> PROVE_TAC []
+    )
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> PROVE_TAC []
+    )
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> PROVE_TAC []
+    )
+    >- (
+      ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
+      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> PROVE_TAC []
+    )
     >> Cases_on `base32pad t'` >- (
-      fs [wf_base32_numlst_def]
-      PROVE_TAC [wf_base32_numlst_def]
+        rw []
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >> ONCE_REWRITE_TAC [base32depad_def]
+        >> rw []
+        >> first_x_assum mp_tac
+        >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `h'4'`, `h'5'`, `h'6'`, `h'7'`, `t'`] MP_TAC WF_BASE32_NUMLST_REC
+        >> rw [BASE32_PAD_EMPTY_STRING]
     ) >> (
-      cheat
+      rw []
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >> first_x_assum (mp_tac o SYM)
+      >> rw []
+      >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `h'4'`, `h'5'`, `h'6'`, `h'7'`, `t'`] MP_TAC WF_BASE32_NUMLST_REC
+      >> rw []
     )
   )
-  
-
-  (* Notes:
-  *     - quantHeuristicsTheory (e.g. LIST_LENGTH_1)
-  *     - ntac 7 (qmatch_goalsub_rename_tac `h::t` >> Cases_on `t`)
-  *     - (REWRITE_CONV [GSYM rich_listTheory.COUNT_LIST_COUNT,
-  *          GSYM pred_setTheory.IN_COUNT] THENC EVAL) ``LENGTH ls < 8n``;
-  *
-  *)
 QED
 
 (* En- and Decoding Theorems *)
