@@ -308,12 +308,6 @@ EVAL ``base32dec $ base32depad "MZXW6YTBOI======" = [0b01100110w; 0b01101111w; 0
 
 (* Padding Theorems *)
 
-Definition wf_base32_numlst_def:
-  wf_base32_numlst (ns: num list) = 
-    (MEM (LENGTH ns MOD 8) [0; 2; 5; 7] 
-  /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32))
-End
-
 Triviality ALL_DISTINCT_ALPH_BASE32: 
   ALL_DISTINCT ALPH_BASE32
 Proof
@@ -370,8 +364,6 @@ Proof
     (* TODO: How can I prove this? *)
   )
 
-
-
   (* Recursive case *) 
   >> rw [wf_base32_clst_def]
   >> Cases_on `cs` >- fs []
@@ -387,6 +379,18 @@ Proof
   >> ONCE_REWRITE_TAC [base32pad_def] 
 QED
 
+
+Definition wf_base32_numlst_def:
+  wf_base32_numlst (ns: num list) = 
+    (MEM (LENGTH ns MOD 8) [0; 2; 5; 7] 
+  /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32))
+End
+
+Theorem WF_BASE32_NUMLST_REC:
+  !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32_numlst (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32_numlst t
+Proof
+  rw [wf_base32_numlst_def, SUC_ONE_ADD]
+QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH0:
   !ns. LENGTH ns = 0 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
@@ -422,7 +426,7 @@ Proof
   >> fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
   >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
   >> fs [wf_base32_numlst_def]
-  >> METIS_TAC []
+  >> PROVE_TAC []
 QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH7:
@@ -441,7 +445,15 @@ Proof
   >> fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
   >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
   >> fs [wf_base32_numlst_def]
-  >> METIS_TAC []
+  >> PROVE_TAC []
+QED
+
+Triviality BASE32_PAD_EMPTY_STRING:
+  !t. wf_base32_numlst t /\ base32pad t = "" ⇒ t = []
+Proof
+  SPOSE_NOT_THEN STRIP_ASSUME_TAC
+  >> Cases_on `t`
+  >> ntac 2 $ fs [Once base32pad_def, wf_base32_numlst_def, AllCaseEqs()]
 QED
 
 Theorem BASE32_PAD_DEPAD:
@@ -449,26 +461,37 @@ Theorem BASE32_PAD_DEPAD:
 Proof
   gen_tac 
   >> completeInduct_on `LENGTH ns` 
-  >> Cases_on `v < 8`
+  >> Cases_on `v < 8` >- (
   (* Base cases *)
-  >> Cases_on `v = 0` >- rw [BASE32_PAD_DEPAD_LENGTH0]
-  >> Cases_on `v = 1` >- rw [wf_base32_numlst_def]
-  >> Cases_on `v = 2` >- rw [BASE32_PAD_DEPAD_LENGTH2]
-  >> Cases_on `v = 3` >- rw [wf_base32_numlst_def] 
-  >> Cases_on `v = 4` >- rw [wf_base32_numlst_def] 
-  >> Cases_on `v = 5` >- rw [BASE32_PAD_DEPAD_LENGTH5] 
-  >> Cases_on `v = 6` >- rw [wf_base32_numlst_def]
-  >> Cases_on `v = 7` >- rw [BASE32_PAD_DEPAD_LENGTH7]
-  >> rw []
-  (* Recursive case *)
-  Cases_on `ns` >- rw [] 
-  >> Cases_on `t` >- rw []
-  >> Cases_on `t'` >- rw []
-  >> Cases_on `t` >- rw []
-  >> Cases_on `t'` >- rw []
-  >> Cases_on `t` >- rw []
-  >> Cases_on `t'` >- rw []
-  >> Cases_on `t` >- rw []
+    Cases_on `v = 0` >- rw [BASE32_PAD_DEPAD_LENGTH0]
+    >> Cases_on `v = 1` >- rw [wf_base32_numlst_def]
+    >> Cases_on `v = 2` >- rw [BASE32_PAD_DEPAD_LENGTH2]
+    >> Cases_on `v = 3` >- rw [wf_base32_numlst_def] 
+    >> Cases_on `v = 4` >- rw [wf_base32_numlst_def] 
+    >> Cases_on `v = 5` >- rw [BASE32_PAD_DEPAD_LENGTH5] 
+    >> Cases_on `v = 6` >- rw [wf_base32_numlst_def]
+    >> Cases_on `v = 7` >- rw [BASE32_PAD_DEPAD_LENGTH7]
+    >> rw []
+  ) >> (
+    (* Recursive case *)
+    Cases_on `ns` >- rw [] 
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw []
+    >> Cases_on `t'` >- rw []
+    >> Cases_on `t` >- rw [] 
+    >> rw [Once base32pad_def]
+    >> rw [Once base32depad_def]
+    >> Cases_on `base32pad t'` >- (
+      fs [wf_base32_numlst_def]
+      PROVE_TAC [wf_base32_numlst_def]
+    ) >> (
+      cheat
+    )
+  )
+  
 
   (* Notes:
   *     - quantHeuristicsTheory (e.g. LIST_LENGTH_1)
@@ -952,10 +975,8 @@ Triviality BASE64_PAD_EMPTY_STRING:
   !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = []
 Proof
   SPOSE_NOT_THEN STRIP_ASSUME_TAC
-  >> qmatch_asmsub_rename_tac `base64pad t`
   >> Cases_on `t`
-  >> fs [Once base64pad_def, wf_base64_numlst_def]
-  >> fs [AllCaseEqs()]
+  >> fs [Once base64pad_def, wf_base64_numlst_def, AllCaseEqs()]
 QED
 
 Theorem BASE64_PAD_DEPAD:
