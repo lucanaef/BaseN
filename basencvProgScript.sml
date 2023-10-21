@@ -31,8 +31,8 @@ Definition missing_encoding_type_string_def:
   ]
 End
 
-
 Theorem help_string_thm = EVAL ``help_string``
+Theorem missing_encoding_type_string_thm = EVAL ``missing_encoding_type_string``
 
 (* Base16 *)
 val _ = translate base16enc_def
