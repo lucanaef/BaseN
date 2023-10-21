@@ -45,11 +45,13 @@ Theorem BASE16_DEC_ENC:
   !(ws: word8 list). base16dec (base16enc ws) = ws
 Proof
   Induct_on `ws` >- (
+    (* Base case *)
     rw [base16enc_def, base16dec_def]
   ) >> (
+    (* Step case *)
     rw [base16enc_def, base16dec_def]
-    >> Q.SPECL_THEN [`7`, `3`, `0`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:8``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:4``), (``:'d`` |-> ``:8``)] wordsTheory.CONCAT_EXTRACT
-    >> rw [wordsTheory.EXTRACT_ALL_BITS]
+    >> Q.SPECL_THEN [`7`, `3`, `0`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:8``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:4``), (``:'d`` |-> ``:8``)] CONCAT_EXTRACT
+    >> rw [EXTRACT_ALL_BITS]
   ) 
 QED
 
@@ -73,16 +75,15 @@ Proof
   >> Cases_on `ns` 
   >- rw [wf_base16_def, base16enc_def, base16dec_def]
   >> Cases_on `t` 
-  >- rw [wf_base16_def]  
   >> rw [wf_base16_def]
   >> rw [base16enc_def, base16dec_def] >- (    
-    Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
+    Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] EXTRACT_CONCAT
     >> rw []
     >> REWRITE_TAC [GSYM STRLEN_ALPH_BASE16]
     >> qpat_x_assum `!n. n = h \/ n = h' \/ MEM n t' ==> n < STRLEN ALPH_BASE16` $ irule_at Any
     >> rw []
   ) >- (
-    Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
+    Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] EXTRACT_CONCAT
     >> rw []
     >> REWRITE_TAC [GSYM STRLEN_ALPH_BASE16]
     >> qpat_x_assum `!n. n = h \/ n = h' \/ MEM n t' ==> n < STRLEN ALPH_BASE16` $ irule_at Any

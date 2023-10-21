@@ -541,7 +541,7 @@ Proof
     >> REWRITE_TAC [base64enc_def, b24_to_w6lst_def, b18_to_w6lst_def, b12_to_w6lst_def, b6_to_w6lst_def]
     >> REWRITE_TAC [MAP, concat_word_list_def]
     >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
-    >> rw [wordsTheory.w2n_n2w]
+    >> rw [w2n_n2w]
     >- fs [wf_base64_def, STRLEN_ALPH_BASE64]
     >- fs [wf_base64_def, STRLEN_ALPH_BASE64]
     >- fs [wf_base64_def, STRLEN_ALPH_BASE64]

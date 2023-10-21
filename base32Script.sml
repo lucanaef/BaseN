@@ -1007,7 +1007,7 @@ Proof
     >> REWRITE_TAC [base32enc_def, b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
     >> REWRITE_TAC [MAP, concat_word_list_def]
     >> SIMP_TAC (std_ss++WORD_ss++WORD_EXTRACT_ss) []
-    >> rw [wordsTheory.w2n_n2w]
+    >> rw [w2n_n2w]
     >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
     >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
     >- fs [wf_base32_def, STRLEN_ALPH_BASE32]
