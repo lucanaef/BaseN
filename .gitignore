@@ -1,7 +1,20 @@
+# macOS
 .DS_Store
+
+# HOL4
 .holobjs
 .HOLMK
 .hollogs
+*Theory.dat
 *Theory.sig
+*Theory.sml
+*Theory.ui
+*Theory.uo
+
+# CakeML
 *.cake
 *.S
+
+# Project artifacts
+basencvProg
+basencvProg.sexp
