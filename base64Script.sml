@@ -144,13 +144,13 @@ Definition wf_base64_ns_def:
  /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE64))
 End
 
-Theorem BASE64_PAD_DEPAD_LENGTH0:
+Triviality BASE64_PAD_DEPAD_LENGTH0:
   !ns. LENGTH ns = 0 /\ wf_base64_ns ns ==> base64depad (base64pad ns) = ns
 Proof
   rw [Once base64pad_def, Once base64depad_def]
 QED
 
-Theorem BASE64_PAD_DEPAD_LENGTH2:
+Triviality BASE64_PAD_DEPAD_LENGTH2:
   !ns. LENGTH ns = 2 /\ wf_base64_ns ns ==> base64depad (base64pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -160,7 +160,7 @@ Proof
   >> fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
 QED
 
-Theorem BASE64_PAD_DEPAD_LENGTH3:
+Triviality BASE64_PAD_DEPAD_LENGTH3:
   !ns. LENGTH ns = 3 /\ wf_base64_ns ns ==> base64depad (base64pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -275,7 +275,7 @@ Proof
   >> rw [ALPH_BASE64_DEF, INDEX_OF_def, INDEX_FIND_def]
 QED
 
-Theorem BASE64_DEPAD_PAD_REC:
+Triviality BASE64_DEPAD_PAD_REC:
   ((!m. m < v ==> !cs. m = STRLEN cs ==> 
     wf_base64_cs cs ==> base64pad (base64depad cs) = cs)
   /\ v <> 0 /\ v <> 4)
@@ -415,7 +415,7 @@ QED
 
 (* En- and Decoding Theorems *)
 
-Theorem BASE64_DEC_ENC_LENGTH1:
+Triviality BASE64_DEC_ENC_LENGTH1:
   !(ws: word8 list). LENGTH ws = 1 ==> base64dec (base64enc ws) = ws
 Proof
   (* Trivial cases *)
@@ -426,7 +426,7 @@ Proof
   >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
-Theorem BASE64_DEC_ENC_LENGTH2:
+Triviality BASE64_DEC_ENC_LENGTH2:
   !(ws: word8 list). LENGTH ws = 2 ==> base64dec (base64enc ws) = ws
 Proof
   (* Trivial cases *)
@@ -463,13 +463,6 @@ Proof
   )
 QED
 
-Theorem BASE64_DEC_ENC_ID:
-  base64dec o base64enc = I
-Proof
-  rw [FUN_EQ_THM, BASE64_DEC_ENC]
-QED
-
-
 Definition wf_base64_def:
   wf_base64 (ns: num list) = 
     (* Length *)
@@ -481,7 +474,7 @@ Definition wf_base64_def:
  /\ (LENGTH ns MOD 4 = 3 ==> ((1 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[2])))
 End
 
-Theorem BASE64_ENC_DEC_LENGTH2:
+Triviality BASE64_ENC_DEC_LENGTH2:
   !(ns: num list). LENGTH ns = 2 /\ wf_base64 ns ==> base64enc (base64dec ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -497,7 +490,7 @@ Proof
   >> fs [wf_base64_def, STRLEN_ALPH_BASE64, W6_SHIFT_4_LSB_MBZ]
 QED
 
-Theorem BASE64_ENC_DEC_LENGTH3:
+Triviality BASE64_ENC_DEC_LENGTH3:
   !(ns: num list). LENGTH ns = 3 /\ wf_base64 ns ==> base64enc (base64dec ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -556,12 +549,6 @@ Proof
     >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `t'`] MP_TAC WF_BASE64_REC
     >> fs []
   )
-QED
-
-Theorem BASE64_ENC_DEC_ID:
-  !ns. wf_base64 ns ==> (base64enc o base64dec) ns = I ns
-Proof
-  rw [FUN_EQ_THM, BASE64_ENC_DEC]
 QED
 
 val _ = export_theory();

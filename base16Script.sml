@@ -53,12 +53,6 @@ Proof
   ) 
 QED
 
-Theorem BASE16_DEC_ENC_ID:
-  base16dec o base16enc = I
-Proof
-  rw [FUN_EQ_THM, BASE16_DEC_ENC]
-QED
-
 Definition wf_base16_def:
   wf_base16 (ns: num list) = 
        (EVEN (LENGTH ns) /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE16))
@@ -107,12 +101,5 @@ Proof
     >> gvs [GSYM wf_base16_def]
   )
 QED
-
-Theorem BASE16_ENC_DEC_ID:
-  !ns. wf_base16 ns ==> (base16enc o base16dec) ns = I ns
-Proof
-  rw [FUN_EQ_THM, BASE16_ENC_DEC]
-QED
-
 
 val _ = export_theory();

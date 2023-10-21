@@ -209,7 +209,7 @@ Proof
   >> gvs [SUC_ONE_ADD, LASTN_DROP_UNCOND]
 QED
 
-Theorem BASE32_DEPAD_PAD_REC:
+Triviality BASE32_DEPAD_PAD_REC:
   ((!m. m < v ==> !cs. m = STRLEN cs ==> 
     wf_base32_cs cs ==> base32pad (base32depad cs) = cs)
   /\ v <> 0 /\ v <> 8)
@@ -298,7 +298,7 @@ Proof
   >> drule_then irule WF_BASE32_CS_REC
 QED
 
-Theorem BASE32_DEPAD_PAD_LENGTH2:
+Triviality BASE32_DEPAD_PAD_LENGTH2:
   wf_base32_cs (STRING h (STRING h' "======"))
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'] = STRING h (STRING h' "======")
@@ -318,7 +318,7 @@ Proof
   )
 QED
 
-Theorem BASE32_DEPAD_PAD_LENGTH3:
+Triviality BASE32_DEPAD_PAD_LENGTH3:
   wf_base32_cs (STRING h (STRING h' (STRING h'' "====="))) /\ h'' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index #"="] 
@@ -346,7 +346,7 @@ Proof
   >- fs [wf_base32_cs_def, LASTN_def, ALPH_BASE32_EL_INDEX]
 QED
 
-Theorem BASE32_DEPAD_PAD_LENGTH4:
+Triviality BASE32_DEPAD_PAD_LENGTH4:
   wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' "====")))) /\ h'3' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'] 
@@ -379,7 +379,7 @@ Proof
   )
 QED
 
-Theorem BASE32_DEPAD_PAD_LENGTH5:
+Triviality BASE32_DEPAD_PAD_LENGTH5:
   wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' "==="))))) /\ h'4' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'] 
@@ -418,7 +418,7 @@ Proof
   )
 QED
 
-Theorem BASE32_DEPAD_PAD_LENGTH6:
+Triviality BASE32_DEPAD_PAD_LENGTH6:
   wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' "==")))))) /\ h'5' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'; alph_base32_index h'5'; alph_base32_index #"="]
@@ -464,7 +464,7 @@ Proof
   >- fs [wf_base32_cs_def, LASTN_def, ALPH_BASE32_EL_INDEX]
 QED
 
-Theorem BASE32_DEPAD_PAD_LENGTH7:
+Triviality BASE32_DEPAD_PAD_LENGTH7:
   wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' "="))))))) /\ h'6' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'; alph_base32_index h'5'; alph_base32_index h'6'] 
@@ -515,7 +515,7 @@ Proof
   )
 QED
 
-Theorem BASE32_DEPAD_PAD_LENGTH8:
+Triviality BASE32_DEPAD_PAD_LENGTH8:
   wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' (STRING h'7' "")))))))) /\ h'7' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'; alph_base32_index h'5'; alph_base32_index h'6'; alph_base32_index h'7'] 
@@ -626,7 +626,7 @@ Proof
   rw [wf_base32_ns_def, SUC_ONE_ADD]
 QED
 
-Theorem BASE32_PAD_DEPAD_LENGTH0:
+Triviality BASE32_PAD_DEPAD_LENGTH0:
   !ns. LENGTH ns = 0 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   ONCE_REWRITE_TAC [base32pad_def]
@@ -634,7 +634,7 @@ Proof
   >> rw []
 QED
 
-Theorem BASE32_PAD_DEPAD_LENGTH2:
+Triviality BASE32_PAD_DEPAD_LENGTH2:
   !ns. LENGTH ns = 2 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -646,7 +646,7 @@ Proof
   >> rw [ALPH_BASE32_INDEX_EL]
 QED
 
-Theorem BASE32_PAD_DEPAD_LENGTH5:
+Triviality BASE32_PAD_DEPAD_LENGTH5:
   !ns. LENGTH ns = 5 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -663,7 +663,7 @@ Proof
   >> PROVE_TAC []
 QED
 
-Theorem BASE32_PAD_DEPAD_LENGTH7:
+Triviality BASE32_PAD_DEPAD_LENGTH7:
   !ns. LENGTH ns = 7 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -784,7 +784,7 @@ QED
 
 (* En- and Decoding Theorems *)
 
-Theorem BASE32_DEC_ENC_LENGTH1:
+Triviality BASE32_DEC_ENC_LENGTH1:
   !(ws: word8 list). LENGTH ws = 1 ==> base32dec (base32enc ws) = ws
 Proof
   Cases_on `ws` 
@@ -794,7 +794,7 @@ Proof
   >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
-Theorem BASE32_DEC_ENC_LENGTH2:
+Triviality BASE32_DEC_ENC_LENGTH2:
   !(ws: word8 list). LENGTH ws = 2 ==> base32dec (base32enc ws) = ws
 Proof
   (* Trivial cases *)
@@ -806,7 +806,7 @@ Proof
   >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
-Theorem BASE32_DEC_ENC_LENGTH3:
+Triviality BASE32_DEC_ENC_LENGTH3:
   !(ws: word8 list). LENGTH ws = 3 ==> base32dec (base32enc ws) = ws
 Proof
   (* Trivial cases *)
@@ -822,7 +822,7 @@ Proof
   >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
 QED
 
-Theorem BASE32_DEC_ENC_LENGTH4:
+Triviality BASE32_DEC_ENC_LENGTH4:
   !(ws: word8 list). LENGTH ws = 4 ==> base32dec (base32enc ws) = ws
 Proof
   (* Trivial cases *)
@@ -871,12 +871,6 @@ Proof
   )
 QED
 
-Theorem BASE32_DEC_ENC_ID:
-  base32dec o base32enc = I
-Proof
-  rw [FUN_EQ_THM, BASE32_DEC_ENC]
-QED
-
 Definition wf_base32_def:
   wf_base32 (ns: num list) = 
     (* Length *)
@@ -896,7 +890,7 @@ Proof
   rw [ALPH_BASE32_DEF]
 QED
 
-Theorem BASE32_ENC_DEC_LENGTH2:
+Triviality BASE32_ENC_DEC_LENGTH2:
   !(ns: num list). LENGTH ns = 2 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -912,7 +906,7 @@ Proof
   >> rw [STRLEN_ALPH_BASE32, SHIFT_2_LSB_MBZ]
 QED
 
-Theorem BASE32_ENC_DEC_LENGTH4:
+Triviality BASE32_ENC_DEC_LENGTH4:
   !(ns: num list). LENGTH ns = 4 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -930,7 +924,7 @@ Proof
   >> fs [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_4_LSB_MBZ]
 QED
 
-Theorem BASE32_ENC_DEC_LENGTH5:
+Triviality BASE32_ENC_DEC_LENGTH5:
   !(ns: num list). LENGTH ns = 5 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
   Cases_on `ns` >- rw []
@@ -949,7 +943,7 @@ Proof
   >> rw [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_1_LSB_MBZ]
 QED
 
-Theorem BASE32_ENC_DEC_LENGTH7:
+Triviality BASE32_ENC_DEC_LENGTH7:
   !(ns: num list). LENGTH ns = 7 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
   Cases_on `ns` >- rw []
