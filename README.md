@@ -44,4 +44,4 @@ The following theorems about the data encodings have been verified:
 | `BASE64_PAD_DEPAD`   | `∀ns. wf_base64_ns ns ⇒ base64depad (base64pad ns) = ns` |
 | `BASE64_DEPAD_PAD`   | `∀cs. wf_base64_cs cs ⇒ base64pad (base64depad cs) = cs` |
 
-where `wf_base{16, 32, 64}_{cs, ns}` are necessary preconditions for the property to hold. For instance, `wf_base64_ns` states that the length of the list of alphabet indices mod 4 must not be 1 and that each index must be smaller than the length of the alphabet.
+where `wf_base{16, 32, 64}_{cs, ns}` are preconditions for the property to hold. For instance, `wf_base64_ns` states that the length of the list of alphabet indices mod 4 must not be 1 and that each index must be smaller than the length of the alphabet.
