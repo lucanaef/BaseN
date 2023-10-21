@@ -1,4 +1,4 @@
-open HolKernel Parse boolLib bossLib blastLib;
+open HolKernel Parse boolLib bossLib;
 open listTheory rich_listTheory stringTheory arithmeticTheory wordsTheory wordsLib;
 open baseNUtilsTheory;
 

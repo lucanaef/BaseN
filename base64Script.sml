@@ -1,4 +1,4 @@
-open HolKernel Parse boolLib bossLib blastLib;
+open HolKernel Parse boolLib bossLib;
 open listTheory rich_listTheory stringTheory arithmeticTheory wordsTheory wordsLib;
 open baseNUtilsTheory;
 
@@ -481,12 +481,6 @@ Definition wf_base64_def:
  /\ (LENGTH ns MOD 4 = 3 ==> ((1 >< 0) $ (n2w $ LAST ns): word6) = (0b0w: bool[2])))
 End
 
-Triviality W6_SHIFT_4_LSB_MBZ:
- !(h: word6). (3 >< 0) h: bool[4] = 0w ==> (5 >< 4) h ≪ 4 = h
-Proof 
-  BBLAST_TAC
-QED
-
 Theorem BASE64_ENC_DEC_LENGTH2:
   !(ns: num list). LENGTH ns = 2 /\ wf_base64 ns ==> base64enc (base64dec ns) = ns
 Proof
@@ -501,12 +495,6 @@ Proof
   >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:6``)] w2n_n2w]
   >> first_x_assum mp_tac
   >> fs [wf_base64_def, STRLEN_ALPH_BASE64, W6_SHIFT_4_LSB_MBZ]
-QED
-
-Triviality W6_SHIFT_2_LSB_MBZ:
- !(h: word6). (1 >< 0) h: bool[2] = 0w ==> (5 >< 2) h ≪ 2 = h
-Proof 
-  BBLAST_TAC
 QED
 
 Theorem BASE64_ENC_DEC_LENGTH3:

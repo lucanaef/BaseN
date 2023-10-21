@@ -1,4 +1,4 @@
-open HolKernel Parse boolLib bossLib blastLib;
+open HolKernel Parse boolLib bossLib;
 open listTheory rich_listTheory stringTheory arithmeticTheory wordsTheory wordsLib;
 open baseNUtilsTheory;
 
@@ -896,12 +896,6 @@ Proof
   rw [ALPH_BASE32_DEF]
 QED
 
-Triviality SHIFT_2_LSB_MBZ:
- !(h: word5). (1 >< 0) h: bool[2] = 0w ==> (4 >< 2) h ≪ 2 = h
-Proof
-  BBLAST_TAC
-QED
-
 Theorem BASE32_ENC_DEC_LENGTH2:
   !(ns: num list). LENGTH ns = 2 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
@@ -916,12 +910,6 @@ Proof
   >> first_x_assum mp_tac
   >> REWRITE_TAC [wf_base32_def]
   >> rw [STRLEN_ALPH_BASE32, SHIFT_2_LSB_MBZ]
-QED
-
-Triviality SHIFT_4_LSB_MBZ:
- !(h: word5). (3 >< 0) h: bool[4] = 0w ==> (4 >< 4) h ≪ 4 = h
-Proof
-  BBLAST_TAC
 QED
 
 Theorem BASE32_ENC_DEC_LENGTH4:
@@ -942,12 +930,6 @@ Proof
   >> fs [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_4_LSB_MBZ]
 QED
 
-Triviality SHIFT_1_LSB_MBZ:
- !(h: word5). (0 >< 0) h: bool[1] = 0w ==> (4 >< 1) h ≪ 1 = h
-Proof
-  BBLAST_TAC
-QED
-
 Theorem BASE32_ENC_DEC_LENGTH5:
   !(ns: num list). LENGTH ns = 5 /\ wf_base32 ns ==> base32enc (base32dec ns) = ns
 Proof
@@ -965,12 +947,6 @@ Proof
   >> REWRITE_TAC [INST_TYPE [(``:'a`` |-> ``:5``)] w2n_n2w]
   >> first_x_assum mp_tac
   >> rw [wf_base32_def, STRLEN_ALPH_BASE32, SHIFT_1_LSB_MBZ]
-QED
-
-Triviality SHIFT_3_LSB_MBZ:
- !(h: word5). (2 >< 0) h: bool[3] = 0w ==> (4 >< 3) h ≪ 3 = h
-Proof
-  BBLAST_TAC
 QED
 
 Theorem BASE32_ENC_DEC_LENGTH7:
