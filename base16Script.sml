@@ -10,6 +10,15 @@ Definition ALPH_BASE16_DEF:
   ALPH_BASE16 = "0123456789ABCDEF"
 End
 
+(* Base16 Alphabet Lookup *)
+
+Definition base16pad_def:
+  base16pad ns = MAP (λi. EL i ALPH_BASE16) ns
+End
+
+Definition base16depad_def:
+  base16depad cs = MAP (λc. THE $ INDEX_OF c ALPH_BASE16) cs
+End
 
 (* Base16 Encoding *)
 
@@ -20,8 +29,8 @@ Definition base16enc_def:
 End
 
 (*
-EVAL ``MAP (λi. EL i ALPH_BASE16) $ base16enc [] = ""``
-EVAL ``MAP (λi. EL i ALPH_BASE16) $ base16enc [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w] = "DEADBEEF"``
+EVAL ``base16pad $ base16enc [] = ""``
+EVAL ``base16pad $ base16enc [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w] = "DEADBEEF"``
 *)
 
 
@@ -34,12 +43,87 @@ Definition base16dec_def:
 End
 
 (*
-EVAL ``base16dec $ MAP (λc. THE $ INDEX_OF c ALPH_BASE16) "" = []``
-EVAL ``base16dec $ MAP (λc. THE $ INDEX_OF c ALPH_BASE16) "DEADBEEF" = [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w]``
+EVAL ``base16dec $ base16depad "" = []``
+EVAL ``base16dec $ base16depad "DEADBEEF" = [0b11011110w; 0b10101101w; 0b10111110w; 0b11101111w]``
 *)
 
 
 (* Theorems *)
+
+Definition wf_base16_ns_def:
+  wf_base16_ns (ns: num list) = 
+    !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE16)
+End
+
+Triviality WF_BASE16_NS_REC:
+  !h t. wf_base16_ns (h::t) ==> wf_base16_ns t
+Proof
+  rw [wf_base16_ns_def, SUC_ONE_ADD]
+QED
+
+Triviality ALL_DISTINCT_ALPH_BASE16: 
+  ALL_DISTINCT ALPH_BASE16
+Proof
+  rw [ALPH_BASE16_DEF]
+QED
+
+Theorem BASE16_PAD_DEPAD:
+  !ns. wf_base16_ns ns ==> base16depad (base16pad ns) = ns
+Proof
+  gen_tac
+  >> completeInduct_on `LENGTH ns`
+  >> Cases_on `ns` >- (
+    rw [Once base16pad_def, Once base16depad_def]
+  ) >> (
+    rw [Once base16pad_def, Once base16depad_def] 
+    >- (
+      fs [wf_base16_ns_def]
+      >> ASSUME_TAC ALL_DISTINCT_ALPH_BASE16
+      >> rw [ALL_DISTINCT_INDEX_OF_EL]
+    ) >> (
+      rw [GSYM $ Once base16depad_def]
+      >> rw [GSYM $ Once base16pad_def]
+      >> first_x_assum mp_tac
+      >> Q.SPECL_THEN [`h`, `t`] MP_TAC WF_BASE16_NS_REC
+      >> rw []
+    )
+  )
+QED
+
+Definition wf_base16_cs_def:
+  wf_base16_cs (cs: char list) = 
+    !(c: char). (MEM c cs ==> MEM c ALPH_BASE16)
+End
+
+Triviality WF_BASE16_CS_REC:
+  !h t. wf_base16_cs (h::t) ==> wf_base16_cs t
+Proof
+  rw [wf_base16_cs_def, SUC_ONE_ADD]
+QED
+
+Theorem BASE16_DEPAD_PAD:
+  !cs. wf_base16_cs cs ==> base16pad (base16depad cs) = cs
+Proof
+  gen_tac
+  >> completeInduct_on `LENGTH cs`
+  >> Cases_on `cs` >- (
+    rw [Once base16pad_def, Once base16depad_def]
+  ) >> (
+    rw [Once base16pad_def, Once base16depad_def] >- ( 
+      first_x_assum mp_tac
+      >> rw [wf_base16_cs_def]
+      >> first_x_assum $ Q.SPECL_THEN [`h`] MP_TAC
+      >> rw []
+      >> fs [ALPH_BASE16_DEF, INDEX_OF_def, INDEX_FIND_def]
+    ) >> (
+      rw [GSYM $ Once base16depad_def]
+      >> rw [GSYM $ Once base16pad_def]
+      >> first_x_assum mp_tac
+      >> Q.SPECL_THEN [`h`, `t`] MP_TAC WF_BASE16_CS_REC
+      >> rw []
+    )
+  )
+QED
 
 Theorem BASE16_DEC_ENC:
   !(ws: word8 list). base16dec (base16enc ws) = ws

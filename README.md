@@ -25,6 +25,8 @@ The following theorems about the data encodings have been verified:
 | -------------------- | -------------------------------------------------------- |
 | `BASE16_ENC_DEC`     | `∀ns. wf_base16 ns ⇒ base16enc (base16dec ns) = ns`      |
 | `BASE16_DEC_ENC`     | `∀ws. base16dec (base16enc ws) = ws`                     |
+| `BASE16_PAD_DEPAD`   | `∀ns. wf_base16_ns ns ⇒ base16depad (base16pad ns) = ns` |
+| `BASE16_DEPAD_PAD`   | `∀cs. wf_base16_cs cs ⇒ base16pad (base16depad cs) = cs` |
 
 ### Base32
 
