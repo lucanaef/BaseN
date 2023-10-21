@@ -85,13 +85,13 @@ Proof
     Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
     >> rw []
     >> REWRITE_TAC [GSYM STRLEN_ALPH_BASE16]
-    >> qpat_x_assum `∀n. n = h ∨ n = h' ∨ MEM n t' ⇒ n < STRLEN ALPH_BASE16` $ irule_at Any
+    >> qpat_x_assum `!n. n = h \/ n = h' \/ MEM n t' ==> n < STRLEN ALPH_BASE16` $ irule_at Any
     >> rw []
   ) >- (
     Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
     >> rw []
     >> REWRITE_TAC [GSYM STRLEN_ALPH_BASE16]
-    >> qpat_x_assum `∀n. n = h ∨ n = h' ∨ MEM n t' ⇒ n < STRLEN ALPH_BASE16` $ irule_at Any
+    >> qpat_x_assum `!n. n = h \/ n = h' \/ MEM n t' ==> n < STRLEN ALPH_BASE16` $ irule_at Any
     >> rw []
   ) >> (
     qpat_x_assum `EVEN (SUC (SUC (LENGTH _)))` MP_TAC
@@ -99,9 +99,9 @@ Proof
     >> ONCE_REWRITE_TAC [GSYM ODD_EVEN]
     >> ONCE_REWRITE_TAC [ODD]
     >> ONCE_REWRITE_TAC [GSYM EVEN_ODD]
-    >> qpat_x_assum `∀n. n = h ∨ n = h' ∨ MEM n t' ⇒ n < STRLEN ALPH_BASE16` MP_TAC
+    >> qpat_x_assum `!n. n = h \/ n = h' \/ MEM n t' ==> n < STRLEN ALPH_BASE16` MP_TAC
     >> rw [DISJ_IMP_THM, FORALL_AND_THM]
-    >> qpat_x_assum `∀n. MEM n t' ⇒ n < STRLEN ALPH_BASE16` MP_TAC
+    >> qpat_x_assum `!n. MEM n t' ==> n < STRLEN ALPH_BASE16` MP_TAC
     >> qpat_x_assum `EVEN (LENGTH t')` MP_TAC
     >> REWRITE_TAC [AND_IMP_INTRO]
     >> gvs [GSYM wf_base16_def]

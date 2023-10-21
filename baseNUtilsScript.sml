@@ -69,37 +69,37 @@ End
 (* Bit shift trivialities *)
 
 Theorem SHIFT_1_LSB_MBZ:
- !(h: word5). (0 >< 0) h: bool[1] = 0w ==> (4 >< 1) h ≪ 1 = h
+ !(h: word5). (0 >< 0) h: bool[1] = 0w ==> (4 >< 1) h << 1 = h
 Proof
   BBLAST_TAC
 QED
 
 Theorem SHIFT_2_LSB_MBZ:
- !(h: word5). (1 >< 0) h: bool[2] = 0w ==> (4 >< 2) h ≪ 2 = h
+ !(h: word5). (1 >< 0) h: bool[2] = 0w ==> (4 >< 2) h << 2 = h
 Proof
   BBLAST_TAC
 QED
 
 Theorem SHIFT_3_LSB_MBZ:
- !(h: word5). (2 >< 0) h: bool[3] = 0w ==> (4 >< 3) h ≪ 3 = h
+ !(h: word5). (2 >< 0) h: bool[3] = 0w ==> (4 >< 3) h << 3 = h
 Proof
   BBLAST_TAC
 QED
 
 Theorem SHIFT_4_LSB_MBZ:
- !(h: word5). (3 >< 0) h: bool[4] = 0w ==> (4 >< 4) h ≪ 4 = h
+ !(h: word5). (3 >< 0) h: bool[4] = 0w ==> (4 >< 4) h << 4 = h
 Proof
   BBLAST_TAC
 QED
 
 Theorem W6_SHIFT_2_LSB_MBZ:
- !(h: word6). (1 >< 0) h: bool[2] = 0w ==> (5 >< 2) h ≪ 2 = h
+ !(h: word6). (1 >< 0) h: bool[2] = 0w ==> (5 >< 2) h << 2 = h
 Proof 
   BBLAST_TAC
 QED
 
 Theorem W6_SHIFT_4_LSB_MBZ:
- !(h: word6). (3 >< 0) h: bool[4] = 0w ==> (5 >< 4) h ≪ 4 = h
+ !(h: word6). (3 >< 0) h: bool[4] = 0w ==> (5 >< 4) h << 4 = h
 Proof 
   BBLAST_TAC
 QED
