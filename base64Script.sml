@@ -206,17 +206,16 @@ Proof
     >> Cases_on `t` >- rw []
     >> Cases_on `t'` >- rw []
     >> Cases_on `t` >- rw []
-    >> ONCE_REWRITE_TAC [base64pad_def] >> rw []
-    >> ONCE_REWRITE_TAC [base64depad_def] >> rw []
+    >> rw [Once base64pad_def, Once base64depad_def]
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
       >> fs [wf_base64_ns_def, STRLEN_ALPH_BASE64] 
-      >> METIS_TAC []
+      >> PROVE_TAC []
     ) 
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
       >> fs [wf_base64_ns_def, STRLEN_ALPH_BASE64] 
-      >> METIS_TAC []
+      >> PROVE_TAC []
     )
     >> Cases_on `base64pad t'` >- (
       rw []
@@ -261,8 +260,7 @@ Theorem WF_BASE64_CS_REC:
 Proof
   ntac 5 gen_tac
   >> Cases_on `LENGTH t < 4`
-  >> rw [wf_base64_cs_def] 
-  >> gvs [SUC_ONE_ADD, LASTN_DROP_UNCOND]
+  >> fs [wf_base64_cs_def, SUC_ONE_ADD, LASTN_DROP_UNCOND]
 QED
 
 Theorem ALPH_BASE64_EL_INDEX:

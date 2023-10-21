@@ -205,8 +205,7 @@ Theorem WF_BASE32_CS_REC:
 Proof
   ntac 9 gen_tac
   >> Cases_on `LENGTH t < 8`
-  >> rw [wf_base32_cs_def] 
-  >> gvs [SUC_ONE_ADD, LASTN_DROP_UNCOND]
+  >> gs [wf_base32_cs_def, SUC_ONE_ADD, LASTN_DROP_UNCOND]
 QED
 
 Triviality BASE32_DEPAD_PAD_REC:
@@ -629,9 +628,7 @@ QED
 Triviality BASE32_PAD_DEPAD_LENGTH0:
   !ns. LENGTH ns = 0 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
-  ONCE_REWRITE_TAC [base32pad_def]
-  >> ONCE_REWRITE_TAC [base32depad_def]
-  >> rw []
+  rw [Once base32pad_def, Once base32depad_def]
 QED
 
 Triviality BASE32_PAD_DEPAD_LENGTH2:
@@ -640,10 +637,7 @@ Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
   >> Cases_on `t'`
-  >> rw [wf_base32_ns_def]
-  >> rw [base32pad_def]
-  >> rw [base32depad_def]
-  >> rw [ALPH_BASE32_INDEX_EL]
+  >> rw [wf_base32_ns_def, Once base32pad_def, Once base32depad_def, ALPH_BASE32_INDEX_EL]
 QED
 
 Triviality BASE32_PAD_DEPAD_LENGTH5:
@@ -655,9 +649,7 @@ Proof
   >> Cases_on `t` >- rw []
   >> Cases_on `t'` >- rw []
   >> Cases_on `t`
-  >> rw [base32pad_def]
-  >> rw [base32depad_def]
-  >> fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+  >> rw [wf_base32_ns_def, Once base32pad_def, Once base32depad_def, ALPH_BASE32_INDEX_EL]
   >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
   >> fs [wf_base32_ns_def]
   >> PROVE_TAC []
@@ -674,9 +666,7 @@ Proof
   >> Cases_on `t` >- rw []
   >> Cases_on `t'` >- rw []
   >> Cases_on `t`
-  >> rw [base32pad_def]
-  >> rw [base32depad_def]
-  >> fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+  >> rw [wf_base32_ns_def, Once base32pad_def, Once base32depad_def, ALPH_BASE32_INDEX_EL]
   >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
   >> fs [wf_base32_ns_def]
   >> PROVE_TAC []
@@ -788,7 +778,6 @@ Triviality BASE32_DEC_ENC_LENGTH1:
   !(ws: word8 list). LENGTH ws = 1 ==> base32dec (base32enc ws) = ws
 Proof
   Cases_on `ws` 
-  >> rw [] 
   >> rw [base32enc_def, b10_to_w5lst_def]
   >> rw [base32dec_def, b8_to_w8lst_def]
   >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
@@ -833,10 +822,15 @@ Proof
   >> Cases_on `t'`
   (* Main case *)
   >> rw [base32enc_def, b35_to_w5lst_def, b10_to_w5lst_def, b25_to_w5lst_def, b20_to_w5lst_def] 
-  >> rw [base32dec_def, b32_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b24_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b16_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-  >> rw [b8_to_w8lst_def] >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) [] >> rw []
+  >> rw [base32dec_def, b32_to_w8lst_def] 
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b24_to_w8lst_def] 
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b16_to_w8lst_def]
+  >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+  >> rw [b8_to_w8lst_def] 
+  >> ntac 2 $ SIMP_TAC (std_ss++WORD_BIT_EQ_ss) [] 
+  >> rw []
 QED
 
 Theorem BASE32_DEC_ENC:
@@ -863,11 +857,16 @@ Proof
     >> rw [base32enc_def]
     >> rw [b40_to_w5lst_def, b20_to_w5lst_def, b10_to_w5lst_def]
     >> rw [base32dec_def]
-    >> rw [b40_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-    >> rw [b32_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-    >> rw [b24_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-    >> rw [b16_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
-    >> rw [b8_to_w8lst_def] >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b40_to_w8lst_def] 
+    >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b32_to_w8lst_def]
+    >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b24_to_w8lst_def] 
+    >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b16_to_w8lst_def] 
+    >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
+    >> rw [b8_to_w8lst_def] 
+    >> SIMP_TAC (std_ss++WORD_BIT_EQ_ss) []
   )
 QED
 
