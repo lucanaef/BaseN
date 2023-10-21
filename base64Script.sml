@@ -138,30 +138,30 @@ Proof
   >> rw [ALL_DISTINCT_INDEX_OF_EL]
 QED
 
-Definition wf_base64_numlst_def:
-  wf_base64_numlst (ns: num list) = 
+Definition wf_base64_ns_def:
+  wf_base64_ns (ns: num list) = 
     ((LENGTH ns MOD 4 <> 1)
  /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE64))
 End
 
 Theorem BASE64_PAD_DEPAD_LENGTH0:
-  !ns. LENGTH ns = 0 /\ wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+  !ns. LENGTH ns = 0 /\ wf_base64_ns ns ==> base64depad (base64pad ns) = ns
 Proof
   rw [Once base64pad_def, Once base64depad_def]
 QED
 
 Theorem BASE64_PAD_DEPAD_LENGTH2:
-  !ns. LENGTH ns = 2 /\ wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+  !ns. LENGTH ns = 2 /\ wf_base64_ns ns ==> base64depad (base64pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
   >> Cases_on `t'` 
   >> rw [Once base64pad_def, Once base64depad_def]
-  >> fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+  >> fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
 QED
 
 Theorem BASE64_PAD_DEPAD_LENGTH3:
-  !ns. LENGTH ns = 3 /\ wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+  !ns. LENGTH ns = 3 /\ wf_base64_ns ns ==> base64depad (base64pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
@@ -169,35 +169,35 @@ Proof
   >> Cases_on `t`
   >> rw [Once base64pad_def, Once base64depad_def]
   >- ( 
-    fs [wf_base64_numlst_def]
+    fs [wf_base64_ns_def]
     >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
     >> METIS_TAC []
   )
-  >> fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL] 
+  >> fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL] 
 QED
 
-Theorem WF_BASE64_NUMLST_REC:
-  !h1 h2 h3 h4 t. wf_base64_numlst (h1::h2::h3::h4::t) ==> wf_base64_numlst t
+Theorem WF_BASE64_NS_REC:
+  !h1 h2 h3 h4 t. wf_base64_ns (h1::h2::h3::h4::t) ==> wf_base64_ns t
 Proof
-  rw [wf_base64_numlst_def, SUC_ONE_ADD]
+  rw [wf_base64_ns_def, SUC_ONE_ADD]
 QED
 
 Triviality BASE64_PAD_EMPTY_STRING:
-  !t. wf_base64_numlst t /\ base64pad t = "" ⇒ t = []
+  !t. wf_base64_ns t /\ base64pad t = "" ⇒ t = []
 Proof
   SPOSE_NOT_THEN STRIP_ASSUME_TAC
   >> Cases_on `t`
-  >> fs [Once base64pad_def, wf_base64_numlst_def, AllCaseEqs()]
+  >> fs [Once base64pad_def, wf_base64_ns_def, AllCaseEqs()]
 QED
 
 Theorem BASE64_PAD_DEPAD:
-  !ns. wf_base64_numlst ns ==> base64depad (base64pad ns) = ns
+  !ns. wf_base64_ns ns ==> base64depad (base64pad ns) = ns
 Proof
   gen_tac
   >> completeInduct_on `LENGTH ns`
   >> Cases_on `v < 4` >- (
     Cases_on `v = 0` >- rw [BASE64_PAD_DEPAD_LENGTH0] 
-    >> Cases_on `v = 1` >- rw [wf_base64_numlst_def] 
+    >> Cases_on `v = 1` >- rw [wf_base64_ns_def] 
     >> Cases_on `v = 2` >- rw [BASE64_PAD_DEPAD_LENGTH2] 
     >> Cases_on `v = 3` >- rw [BASE64_PAD_DEPAD_LENGTH3] 
     >> rw []
@@ -210,40 +210,40 @@ Proof
     >> ONCE_REWRITE_TAC [base64depad_def] >> rw []
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
-      >> fs [wf_base64_numlst_def, STRLEN_ALPH_BASE64] 
+      >> fs [wf_base64_ns_def, STRLEN_ALPH_BASE64] 
       >> METIS_TAC []
     ) 
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
-      >> fs [wf_base64_numlst_def, STRLEN_ALPH_BASE64] 
+      >> fs [wf_base64_ns_def, STRLEN_ALPH_BASE64] 
       >> METIS_TAC []
     )
     >> Cases_on `base64pad t'` >- (
       rw []
-      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
-      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
-      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
-      >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
       >> ONCE_REWRITE_TAC [base64depad_def]
       >> rw []
       >> first_x_assum mp_tac
-      >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_NUMLST_REC
+      >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_NS_REC
       >> rw [BASE64_PAD_EMPTY_STRING]
     )
     >> rw []
-    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
-    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
-    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
-    >- fs [wf_base64_numlst_def, ALPH_BASE64_INDEX_EL]
+    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
     >> first_x_assum (mp_tac o SYM)
     >> rw []
-    >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_NUMLST_REC
+    >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'³'`, `t'`] MP_TAC WF_BASE64_NS_REC
     >> rw []
   )
 QED
 
-Definition wf_base64_clst_def:
-  wf_base64_clst (cs: char list) = 
+Definition wf_base64_cs_def:
+  wf_base64_cs (cs: char list) = 
     ((LENGTH cs MOD 4 = 0)
  /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE64))
  /\ (~(MEM #"=" $ TAKE (LENGTH cs - 4) cs))
@@ -256,12 +256,12 @@ Definition wf_base64_clst_def:
   \/ (~(MEM #"=" $ LASTN 4 cs)))))
 End
 
-Theorem WF_BASE64_CLST_REC:
-  !h1 h2 h3 h4 t. wf_base64_clst (h1::h2::h3::h4::t) ==> wf_base64_clst t
+Theorem WF_BASE64_CS_REC:
+  !h1 h2 h3 h4 t. wf_base64_cs (h1::h2::h3::h4::t) ==> wf_base64_cs t
 Proof
   ntac 5 gen_tac
   >> Cases_on `LENGTH t < 4`
-  >> rw [wf_base64_clst_def] 
+  >> rw [wf_base64_cs_def] 
   >> gvs [SUC_ONE_ADD, LASTN_DROP_UNCOND]
 QED
 
@@ -277,14 +277,14 @@ QED
 
 Theorem BASE64_DEPAD_PAD_REC:
   ((!m. m < v ==> !cs. m = STRLEN cs ==> 
-    wf_base64_clst cs ==> base64pad (base64depad cs) = cs)
+    wf_base64_cs cs ==> base64pad (base64depad cs) = cs)
   /\ v <> 0 /\ v <> 4)
   ==>
-  (v = STRLEN cs ==> wf_base64_clst cs ==> base64pad (base64depad cs) = cs)
+  (v = STRLEN cs ==> wf_base64_cs cs ==> base64pad (base64depad cs) = cs)
 Proof
   rpt strip_tac 
   >> `LENGTH cs >= 8` by (
-    fs [wf_base64_clst_def]
+    fs [wf_base64_cs_def]
     >> ntac 3 $ WEAKEN_TAC (fn f => true)
     >> first_x_assum mp_tac
     >> WEAKEN_TAC (fn f => true)
@@ -308,32 +308,32 @@ Proof
   >> rw [Once base64depad_def]
   >> rw [Once base64pad_def] 
   >- (
-    fs [wf_base64_clst_def]
+    fs [wf_base64_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [ALPH_BASE64_EL_INDEX]
   )
   >- (
-    fs [wf_base64_clst_def]
+    fs [wf_base64_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
     >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
-    fs [wf_base64_clst_def]
+    fs [wf_base64_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
     >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
-    fs [wf_base64_clst_def]
+    fs [wf_base64_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >> first_x_assum $ match_mp_tac o MP_CANON
   >> csimp []
-  >> drule_then irule WF_BASE64_CLST_REC
+  >> drule_then irule WF_BASE64_CS_REC
 QED
 
 Theorem BASE64_DEPAD_PAD:
-  !cs. wf_base64_clst cs ==> base64pad (base64depad cs) = cs
+  !cs. wf_base64_cs cs ==> base64pad (base64depad cs) = cs
 Proof
   gen_tac
   >> completeInduct_on `LENGTH cs`
@@ -351,57 +351,57 @@ Proof
       >> rw [base64pad_def]
       (* Case: [h; h'; "="; "="] *)
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [LASTN_def] 
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [LASTN_def] 
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; "="] *)
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
-        fs [wf_base64_clst_def] 
+        fs [wf_base64_cs_def] 
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
         >> gvs [ALPH_BASE64_EL_INDEX]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; h'³'] *)
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
-        fs [wf_base64_clst_def]
+        fs [wf_base64_cs_def]
         >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'³'` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]

@@ -59,8 +59,8 @@ Proof
   rw [FUN_EQ_THM, BASE16_DEC_ENC]
 QED
 
-Definition wellformed_base16_def:
-  wellformed_base16 (ns: num list) = 
+Definition wf_base16_def:
+  wf_base16 (ns: num list) = 
        (EVEN (LENGTH ns) /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE16))
 End
 
@@ -71,16 +71,16 @@ Proof
 QED
 
 Theorem BASE16_ENC_DEC:
-  !(ns: num list). wellformed_base16 ns ==> base16enc (base16dec ns) = ns
+  !(ns: num list). wf_base16 ns ==> base16enc (base16dec ns) = ns
 Proof
   gen_tac
   >> completeInduct_on `LENGTH ns`
   >> gen_tac 
   >> Cases_on `ns` 
-  >- rw [wellformed_base16_def, base16enc_def, base16dec_def]
+  >- rw [wf_base16_def, base16enc_def, base16dec_def]
   >> Cases_on `t` 
-  >- rw [wellformed_base16_def]  
-  >> rw [wellformed_base16_def]
+  >- rw [wf_base16_def]  
+  >> rw [wf_base16_def]
   >> rw [base16enc_def, base16dec_def] >- (    
     Q.SPECL_THEN [`n2w h`, `n2w h'`] MP_TAC $ INST_TYPE [(``:'a`` |-> ``:4``), (``:'b`` |-> ``:4``), (``:'c`` |-> ``:8``)] wordsTheory.EXTRACT_CONCAT
     >> rw []
@@ -104,12 +104,12 @@ Proof
     >> qpat_x_assum `∀n. MEM n t' ⇒ n < STRLEN ALPH_BASE16` MP_TAC
     >> qpat_x_assum `EVEN (LENGTH t')` MP_TAC
     >> REWRITE_TAC [AND_IMP_INTRO]
-    >> gvs [GSYM wellformed_base16_def]
+    >> gvs [GSYM wf_base16_def]
   )
 QED
 
 Theorem BASE16_ENC_DEC_ID:
-  !ns. wellformed_base16 ns ==> (base16enc o base16dec) ns = I ns
+  !ns. wf_base16 ns ==> (base16enc o base16dec) ns = I ns
 Proof
   rw [FUN_EQ_THM, BASE16_ENC_DEC]
 QED

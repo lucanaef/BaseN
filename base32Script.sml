@@ -175,8 +175,8 @@ Proof
   >> rw [ALL_DISTINCT_INDEX_OF_EL]
 QED
 
-Definition wf_base32_clst_def:
-  wf_base32_clst (cs: char list) = 
+Definition wf_base32_cs_def:
+  wf_base32_cs (cs: char list) = 
     ((LENGTH cs MOD 8 = 0)
  /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE32))
  /\ (~(MEM #"=" $ TAKE (LENGTH cs - 8) cs))
@@ -200,25 +200,25 @@ Definition wf_base32_clst_def:
    \/ (~(MEM #"=" $ LASTN 8 cs)))))
 End
 
-Theorem WF_BASE32_CLST_REC:
-  !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32_clst (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32_clst t
+Theorem WF_BASE32_CS_REC:
+  !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32_cs (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32_cs t
 Proof
   ntac 9 gen_tac
   >> Cases_on `LENGTH t < 8`
-  >> rw [wf_base32_clst_def] 
+  >> rw [wf_base32_cs_def] 
   >> gvs [SUC_ONE_ADD, LASTN_DROP_UNCOND]
 QED
 
 Theorem BASE32_DEPAD_PAD_REC:
   ((!m. m < v ==> !cs. m = STRLEN cs ==> 
-    wf_base32_clst cs ==> base32pad (base32depad cs) = cs)
+    wf_base32_cs cs ==> base32pad (base32depad cs) = cs)
   /\ v <> 0 /\ v <> 8)
   ==>
-  (v = STRLEN cs ==> wf_base32_clst cs ==> base32pad (base32depad cs) = cs)
+  (v = STRLEN cs ==> wf_base32_cs cs ==> base32pad (base32depad cs) = cs)
 Proof
   rpt strip_tac
   >> `LENGTH cs >= 16` by (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> ntac 3 $ WEAKEN_TAC (fn f => true)
     >> first_x_assum mp_tac
     >> WEAKEN_TAC (fn f => true)
@@ -254,64 +254,64 @@ Proof
   >> rw [Once base32depad_def]
   >> rw [Once base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `!c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   ) 
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'7'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >> first_x_assum $ match_mp_tac o MP_CANON
   >> csimp []
-  >> drule_then irule WF_BASE32_CLST_REC
+  >> drule_then irule WF_BASE32_CS_REC
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH2:
-  wf_base32_clst (STRING h (STRING h' "======"))
+  wf_base32_cs (STRING h (STRING h' "======"))
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'] = STRING h (STRING h' "======")
 Proof
   rw [base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
@@ -319,60 +319,60 @@ Proof
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH3:
-  wf_base32_clst (STRING h (STRING h' (STRING h'' "====="))) /\ h'' ≠ #"="
+  wf_base32_cs (STRING h (STRING h' (STRING h'' "====="))) /\ h'' ≠ #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index #"="] 
    = STRING h (STRING h' (STRING h'' "====="))
 Proof
   rw [base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
-  >- fs [wf_base32_clst_def, LASTN_def, ALPH_BASE32_EL_INDEX]
+  >- fs [wf_base32_cs_def, LASTN_def, ALPH_BASE32_EL_INDEX]
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH4:
-  wf_base32_clst (STRING h (STRING h' (STRING h'' (STRING h'3' "====")))) /\ h'3' ≠ #"="
+  wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' "====")))) /\ h'3' ≠ #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'] 
    = STRING h (STRING h' (STRING h'' (STRING h'3' "====")))
 Proof
   rw [base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
@@ -380,38 +380,38 @@ Proof
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH5:
-  wf_base32_clst (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' "==="))))) /\ h'4' ≠ #"="
+  wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' "==="))))) /\ h'4' ≠ #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'] 
    = STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' "==="))))
 Proof
   rw [base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
@@ -419,96 +419,96 @@ Proof
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH6:
-  wf_base32_clst (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' "==")))))) /\ h'5' <> #"="
+  wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' "==")))))) /\ h'5' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'; alph_base32_index h'5'; alph_base32_index #"="]
    = STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' "==")))))
 Proof
   rw [base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
-  >- fs [wf_base32_clst_def, LASTN_def, ALPH_BASE32_EL_INDEX]
+  >- fs [wf_base32_cs_def, LASTN_def, ALPH_BASE32_EL_INDEX]
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH7:
-  wf_base32_clst (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' "="))))))) /\ h'6' ≠ #"="
+  wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' "="))))))) /\ h'6' ≠ #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'; alph_base32_index h'5'; alph_base32_index h'6'] 
    = STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' "="))))))
 Proof
   rw [base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
@@ -516,56 +516,56 @@ Proof
 QED
 
 Theorem BASE32_DEPAD_PAD_LENGTH8:
-  wf_base32_clst (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' (STRING h'7' "")))))))) /\ h'7' <> #"="
+  wf_base32_cs (STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' (STRING h'7' "")))))))) /\ h'7' <> #"="
   ==>
   base32pad [alph_base32_index h; alph_base32_index h'; alph_base32_index h''; alph_base32_index h'3'; alph_base32_index h'4'; alph_base32_index h'5'; alph_base32_index h'6'; alph_base32_index h'7'] 
    = STRING h (STRING h' (STRING h'' (STRING h'3' (STRING h'4' (STRING h'5' (STRING h'6' (STRING h'7' "")))))))
 Proof
   rw [base32pad_def]
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
-    fs [wf_base32_clst_def]
+    fs [wf_base32_cs_def]
     >> qpat_x_assum `∀c. c = #"=" ∨ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'7'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
@@ -573,7 +573,7 @@ Proof
 QED
 
 Theorem BASE32_DEPAD_PAD:
-  !cs. wf_base32_clst cs ==> base32pad (base32depad cs) = cs
+  !cs. wf_base32_cs cs ==> base32pad (base32depad cs) = cs
 Proof
   gen_tac
   >> completeInduct_on `LENGTH cs`
@@ -614,20 +614,20 @@ Proof
   )
 QED
 
-Definition wf_base32_numlst_def:
-  wf_base32_numlst (ns: num list) = 
+Definition wf_base32_ns_def:
+  wf_base32_ns (ns: num list) = 
     (MEM (LENGTH ns MOD 8) [0; 2; 5; 7] 
   /\ !(n: num). (MEM n ns ==> n < LENGTH ALPH_BASE32))
 End
 
-Theorem WF_BASE32_NUMLST_REC:
-  !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32_numlst (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32_numlst t
+Theorem WF_BASE32_NS_REC:
+  !h1 h2 h3 h4 h5 h6 h7 h8 t. wf_base32_ns (h1::h2::h3::h4::h5::h6::h7::h8::t) ==> wf_base32_ns t
 Proof
-  rw [wf_base32_numlst_def, SUC_ONE_ADD]
+  rw [wf_base32_ns_def, SUC_ONE_ADD]
 QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH0:
-  !ns. LENGTH ns = 0 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+  !ns. LENGTH ns = 0 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   ONCE_REWRITE_TAC [base32pad_def]
   >> ONCE_REWRITE_TAC [base32depad_def]
@@ -635,19 +635,19 @@ Proof
 QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH2:
-  !ns. LENGTH ns = 2 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+  !ns. LENGTH ns = 2 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
   >> Cases_on `t'`
-  >> rw [wf_base32_numlst_def]
+  >> rw [wf_base32_ns_def]
   >> rw [base32pad_def]
   >> rw [base32depad_def]
   >> rw [ALPH_BASE32_INDEX_EL]
 QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH5:
-  !ns. LENGTH ns = 5 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+  !ns. LENGTH ns = 5 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
@@ -657,14 +657,14 @@ Proof
   >> Cases_on `t`
   >> rw [base32pad_def]
   >> rw [base32depad_def]
-  >> fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+  >> fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
   >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-  >> fs [wf_base32_numlst_def]
+  >> fs [wf_base32_ns_def]
   >> PROVE_TAC []
 QED
 
 Theorem BASE32_PAD_DEPAD_LENGTH7:
-  !ns. LENGTH ns = 7 /\ wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+  !ns. LENGTH ns = 7 /\ wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   Cases_on `ns` >- rw []
   >> Cases_on `t` >- rw []
@@ -676,34 +676,34 @@ Proof
   >> Cases_on `t`
   >> rw [base32pad_def]
   >> rw [base32depad_def]
-  >> fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+  >> fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
   >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-  >> fs [wf_base32_numlst_def]
+  >> fs [wf_base32_ns_def]
   >> PROVE_TAC []
 QED
 
 Triviality BASE32_PAD_EMPTY_STRING:
-  !t. wf_base32_numlst t /\ base32pad t = "" ⇒ t = []
+  !t. wf_base32_ns t /\ base32pad t = "" ⇒ t = []
 Proof
   SPOSE_NOT_THEN STRIP_ASSUME_TAC
   >> Cases_on `t`
-  >> ntac 2 $ fs [Once base32pad_def, wf_base32_numlst_def, AllCaseEqs()]
+  >> ntac 2 $ fs [Once base32pad_def, wf_base32_ns_def, AllCaseEqs()]
 QED
 
 Theorem BASE32_PAD_DEPAD:
-  !ns. wf_base32_numlst ns ==> base32depad (base32pad ns) = ns
+  !ns. wf_base32_ns ns ==> base32depad (base32pad ns) = ns
 Proof
   gen_tac 
   >> completeInduct_on `LENGTH ns` 
   >> Cases_on `v < 8` >- (
   (* Base cases *)
     Cases_on `v = 0` >- rw [BASE32_PAD_DEPAD_LENGTH0]
-    >> Cases_on `v = 1` >- rw [wf_base32_numlst_def]
+    >> Cases_on `v = 1` >- rw [wf_base32_ns_def]
     >> Cases_on `v = 2` >- rw [BASE32_PAD_DEPAD_LENGTH2]
-    >> Cases_on `v = 3` >- rw [wf_base32_numlst_def] 
-    >> Cases_on `v = 4` >- rw [wf_base32_numlst_def] 
+    >> Cases_on `v = 3` >- rw [wf_base32_ns_def] 
+    >> Cases_on `v = 4` >- rw [wf_base32_ns_def] 
     >> Cases_on `v = 5` >- rw [BASE32_PAD_DEPAD_LENGTH5] 
-    >> Cases_on `v = 6` >- rw [wf_base32_numlst_def]
+    >> Cases_on `v = 6` >- rw [wf_base32_ns_def]
     >> Cases_on `v = 7` >- rw [BASE32_PAD_DEPAD_LENGTH7]
     >> rw []
   ) >> (
@@ -720,62 +720,62 @@ Proof
     >> rw [Once base32depad_def]
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> fs [wf_base32_ns_def, STRLEN_ALPH_BASE32] 
       >> PROVE_TAC []
     )
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> fs [wf_base32_ns_def, STRLEN_ALPH_BASE32] 
       >> PROVE_TAC []
     )
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> fs [wf_base32_ns_def, STRLEN_ALPH_BASE32] 
       >> PROVE_TAC []
     )
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> fs [wf_base32_ns_def, STRLEN_ALPH_BASE32] 
       >> PROVE_TAC []
     )
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> fs [wf_base32_ns_def, STRLEN_ALPH_BASE32] 
       >> PROVE_TAC []
     )
     >- (
       ASSUME_TAC PAD_NOT_IN_ALPH_BASE32
-      >> fs [wf_base32_numlst_def, STRLEN_ALPH_BASE32] 
+      >> fs [wf_base32_ns_def, STRLEN_ALPH_BASE32] 
       >> PROVE_TAC []
     )
     >> Cases_on `base32pad t'` >- (
         rw []
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-        >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+        >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
         >> ONCE_REWRITE_TAC [base32depad_def]
         >> rw []
         >> first_x_assum mp_tac
-        >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `h'4'`, `h'5'`, `h'6'`, `h'7'`, `t'`] MP_TAC WF_BASE32_NUMLST_REC
+        >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `h'4'`, `h'5'`, `h'6'`, `h'7'`, `t'`] MP_TAC WF_BASE32_NS_REC
         >> rw [BASE32_PAD_EMPTY_STRING]
     ) >> (
       rw []
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
-      >- fs [wf_base32_numlst_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
+      >- fs [wf_base32_ns_def, ALPH_BASE32_INDEX_EL]
       >> first_x_assum (mp_tac o SYM)
       >> rw []
-      >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `h'4'`, `h'5'`, `h'6'`, `h'7'`, `t'`] MP_TAC WF_BASE32_NUMLST_REC
+      >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `h'4'`, `h'5'`, `h'6'`, `h'7'`, `t'`] MP_TAC WF_BASE32_NS_REC
       >> rw []
     )
   )
