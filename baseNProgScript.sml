@@ -1,16 +1,16 @@
 open preamble basis ml_progTheory astPP fromSexpTheory astToSexprLib;
 open base16Theory base32Theory base64Theory;
 
-val _ = new_theory "basencvProg";
+val _ = new_theory "baseNProg";
 
 val _ = translation_extends "basisProg"
 
 Definition help_string_def:
   help_string = concat $ MAP (λx. strlit $ x ++ "\n") [
-    "basencv - Verified implementations of Base-N data encodings";
+    "basen - Verified implementations of Base-N data encodings";
     "";
-    "Usage: basencv [OPTION]... [FILE]";
-    "basencv encodes or decodes FILE, or standard input, to standard output.";
+    "Usage: basen [OPTION]... [FILE]";
+    "basen encodes or decodes FILE, or standard input, to standard output.";
     "";
     "OPTIONS";
     "      --base16  Base16 encoding (RFC4648 section 8)";
@@ -26,8 +26,8 @@ End
 
 Definition missing_encoding_type_string_def:
   missing_encoding_type_string = concat $ MAP (λx. strlit $ x ++ "\n") [
-    "basencv: missing encoding type";
-    "Try 'basencv --help' for more information."
+    "basen: missing encoding type";
+    "Try 'basen --help' for more information."
   ]
 End
 
@@ -108,6 +108,6 @@ val prog =
     ^(get_ml_prog_state() |> get_prog)
   `` |> EVAL |> concl |> rhs
 
-val _ = astToSexprLib.write_ast_to_file "basencvProg.sexp" prog;
+val _ = astToSexprLib.write_ast_to_file "baseNProg.sexp" prog;
 
 val _ = export_theory ();
