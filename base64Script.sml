@@ -244,7 +244,7 @@ QED
 Definition wf_base64_cs_def:
   wf_base64_cs (cs: char list) = 
     ((LENGTH cs MOD 4 = 0)
- /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE64))
+ /\ (!(c: char). (MEM c cs ==> c = #"=" \/ MEM c ALPH_BASE64))
  /\ (~(MEM #"=" $ TAKE (LENGTH cs - 4) cs))
  /\ (LENGTH cs >= 4 ==> 
      (* Case [h1; h2; "="; "="] *)
@@ -307,22 +307,22 @@ Proof
   >> rw [Once base64pad_def] 
   >- (
     fs [wf_base64_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [ALPH_BASE64_EL_INDEX]
   )
   >- (
     fs [wf_base64_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
     >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
     fs [wf_base64_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
     >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
     fs [wf_base64_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> gvs [ALPH_BASE64_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >> first_x_assum $ match_mp_tac o MP_CANON
@@ -350,57 +350,57 @@ Proof
       (* Case: [h; h'; "="; "="] *)
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [LASTN_def] 
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [LASTN_def] 
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; "="] *)
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
         fs [wf_base64_cs_def] 
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
         >> gvs [ALPH_BASE64_EL_INDEX]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       (* Case: [h; h'; h''; h'3'] *)
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       ) 
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h''` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       )
       >- (
         fs [wf_base64_cs_def]
-        >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'3'` MP_TAC
+        >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE64` $ Q.SPEC_THEN `h'3'` MP_TAC
         >> fs [LASTN_def]
         >> rw [ALPH_BASE64_EL_INDEX]
       ) 

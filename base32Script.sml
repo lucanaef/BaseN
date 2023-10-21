@@ -178,7 +178,7 @@ QED
 Definition wf_base32_cs_def:
   wf_base32_cs (cs: char list) = 
     ((LENGTH cs MOD 8 = 0)
- /\ (!(c: char). (c = #"=" \/ MEM c ALPH_BASE32))
+ /\ (!(c: char). (MEM c cs ==> c = #"=" \/ MEM c ALPH_BASE32))
  /\ (~(MEM #"=" $ TAKE (LENGTH cs - 8) cs))
  /\ (LENGTH cs >= 8 ==> 
        (* Case (c1::c2::"======") *)
@@ -254,42 +254,42 @@ Proof
   >> rw [Once base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   ) 
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'7'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ MEM c t ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'7'` MP_TAC
     >> gs [ALPH_BASE32_EL_INDEX, SUC_ONE_ADD, LASTN, MEM]
   )
   >> first_x_assum $ match_mp_tac o MP_CANON
@@ -305,13 +305,13 @@ Proof
   rw [base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
@@ -326,19 +326,19 @@ Proof
   rw [base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
@@ -354,25 +354,25 @@ Proof
   rw [base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
@@ -387,31 +387,31 @@ Proof
   rw [base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
@@ -426,37 +426,37 @@ Proof
   rw [base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
@@ -472,43 +472,43 @@ Proof
   rw [base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ c = #"=" ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
@@ -523,49 +523,49 @@ Proof
   rw [base32pad_def]
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h''` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'3'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'4'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'5'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'6'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
   >- (
     fs [wf_base32_cs_def]
-    >> qpat_x_assum `!c. c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'7'` MP_TAC
+    >> qpat_x_assum `!c. _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ \/ _ ==> c = #"=" \/ MEM c ALPH_BASE32` $ Q.SPEC_THEN `h'7'` MP_TAC
     >> fs [LASTN_def] 
     >> rw [ALPH_BASE32_EL_INDEX]
   )
