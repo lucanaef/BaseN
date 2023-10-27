@@ -171,7 +171,7 @@ Proof
   >- ( 
     fs [wf_base64_ns_def]
     >> ASSUME_TAC PAD_NOT_IN_ALPH_BASE64
-    >> METIS_TAC []
+    >> PROVE_TAC []
   )
   >> fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL] 
 QED
@@ -219,10 +219,9 @@ Proof
     )
     >> Cases_on `base64pad t'` >- (
       rw []
-      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
-      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
-      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
-      >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+      >>~- ([`alph_base64_index (alph_base64_el _) = _`],
+        fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+      )
       >> ONCE_REWRITE_TAC [base64depad_def]
       >> rw []
       >> first_x_assum mp_tac
@@ -230,10 +229,9 @@ Proof
       >> rw [BASE64_PAD_EMPTY_STRING]
     )
     >> rw []
-    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
-    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
-    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
-    >- fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+    >>~- ([`alph_base64_index (alph_base64_el _) = _`],
+      fs [wf_base64_ns_def, ALPH_BASE64_INDEX_EL]
+    )
     >> first_x_assum (mp_tac o SYM)
     >> rw []
     >> Q.SPECL_THEN [`h`, `h'`, `h''`, `h'3'`, `t'`] MP_TAC WF_BASE64_NS_REC
